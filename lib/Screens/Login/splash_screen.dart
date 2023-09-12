@@ -1,0 +1,167 @@
+// ignore_for_file: prefer_const_constructors
+
+import 'package:flutter/material.dart';
+
+import '../../core/app_export.dart';
+
+class SplashScreen extends StatelessWidget {
+  void initState() {}
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          height: size.height,
+          width: size.width,
+          decoration: BoxDecoration(gradient: ColorConstant.appBarGradient),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              top: getVerticalSize(
+                                99.00,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                /// Company Logo
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                    right: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/images/img_logoresize1.png',
+                                    height: getVerticalSize(
+                                      126.00,
+                                    ),
+                                    width: getHorizontalSize(
+                                      186.00,
+                                    ),
+                                    fit: BoxFit.fill,
+                                  ),
+                                ),
+
+                                ///App Details
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                    top: getVerticalSize(
+                                      34.04,
+                                    ),
+                                    right: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                  ),
+                                  child: FittedBox(
+                                    child: Text(
+                                      "Saisanket Controller Application",
+                                      textScaleFactor: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: true,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: ColorConstant.whiteA700,
+                                        fontSize: getFontSize(
+                                          22,
+                                        ),
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                    top: getVerticalSize(
+                                      5.00,
+                                    ),
+                                    right: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "Controller Mobile Application",
+                                    textScaleFactor: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: ColorConstant.whiteA700,
+                                      fontSize: getFontSize(
+                                        18,
+                                      ),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    left: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                    top: getVerticalSize(
+                                      4.00,
+                                    ),
+                                    right: getHorizontalSize(
+                                      18.00,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "Version 1.0",
+                                    textScaleFactor: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: ColorConstant.black900,
+                                      fontSize: getFontSize(
+                                        12,
+                                      ),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
