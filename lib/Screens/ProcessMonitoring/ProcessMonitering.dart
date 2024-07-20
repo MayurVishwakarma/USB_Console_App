@@ -1646,7 +1646,7 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                                           Padding(
                                                             padding:
                                                                 const EdgeInsets
-                                                                        .only(
+                                                                    .only(
                                                                     right: 2,
                                                                     top: 5,
                                                                     bottom: 5),
@@ -4176,8 +4176,10 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
           return 'M';
         } else if (autom[2] == "1") {
           return 'A';
-        } else
+        } else {
           return 'N';
+        }
+
       case 2:
         var subString3;
         String binaryNumber;
@@ -4203,8 +4205,10 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
           return 'M';
         } else if (int.parse(autom[2]) == 1) {
           return 'A';
-        } else
+        } else {
           return 'N';
+        }
+
       case 3:
         var subString3;
         String binaryNumber;

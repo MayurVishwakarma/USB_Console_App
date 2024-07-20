@@ -421,10 +421,6 @@ class _GeneralFactorySettingState extends State<GeneralFactorySetting> {
                                       color: Color.fromARGB(255, 45, 51, 74),
                                       fontSize: 14),
                                 )),
-                                // Expanded(
-                                //   child:
-                                //       getProcessStatus(context, dropdownItems),
-                                // ),
                                 SizedBox(width: 5),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -447,7 +443,7 @@ class _GeneralFactorySettingState extends State<GeneralFactorySetting> {
                                   ),
                                 ),
                                 SizedBox(
-                                           child: ElevatedButton(
+                                  child: ElevatedButton(
                                       onPressed: _port == null
                                           ? null
                                           : () async {
@@ -1000,7 +996,7 @@ class _GeneralFactorySettingState extends State<GeneralFactorySetting> {
           final DateFormat formatter = DateFormat('yyyy/MM/dd HH:mm:ss');
           _datetimecontroller.text = formatter
               .format(DateTime(year, month, day, hour, minute, second));
-          if (_datetimecontroller.text!.isEmpty) {
+          if (_datetimecontroller.text.isEmpty) {
             getDatetime();
           }
         },

@@ -1,11 +1,25 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_usb2/Provider/data_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_export.dart';
 
-class SplashScreen extends StatelessWidget {
-  void initState() {}
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    var dp = Provider.of<DataProvider>(context, listen: false);
+    dp.splashScreenInit(context);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +149,7 @@ class SplashScreen extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    "Version 1.0",
+                                    "Version 2.0",
                                     textScaleFactor: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,

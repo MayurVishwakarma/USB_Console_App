@@ -122,7 +122,7 @@ class _UsbConsoleScreen_testState extends State<UsbConsoleScreen_test> {
               _devices.isNotEmpty
                   ? "Available Serial Ports"
                   : "No serial devices available",
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             for (final device in _devices)
               Card(
@@ -204,7 +204,6 @@ class _UsbConsoleScreen_testState extends State<UsbConsoleScreen_test> {
       if (_response.join().contains('INTG')) {
         var len = _response.join().indexOf('le');
         hexDecimalValue = _response.join().substring((len + 9));
-        
       } else {
         hexDecimalValue = '';
       }

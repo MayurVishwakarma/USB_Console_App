@@ -49,15 +49,13 @@ class _FactorySettingState extends State<FactorySetting>
           tabs: myTabs,
         ),
       ),
-      body: Container(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            GeneralFactorySetting(),
-            IOConfigurationPage(),
-            operation_mode()
-          ],
-        ), //CardExample()
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          GeneralFactorySetting(),
+          IOConfigurationPage(),
+          operation_mode()
+        ],
       ),
     );
   }

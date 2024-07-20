@@ -1,12 +1,28 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.flutter_application_usb2">
-   <application
-        android:label="USB Console App"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+
+    <!-- USB Host Feature -->
+    <uses-feature android:name="android.hardware.usb.host" />
+    
+    <!-- Application -->
+    <application
+        android:label="Usb Console Application"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true"
-        >
+        android:icon="@mipmap/ic_launcher">
         
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -15,45 +31,30 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
+            
+            <!-- Normal Theme Metadata -->
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+              android:resource="@style/NormalTheme" />
+              
+            <!-- Main Activity Intent Filter -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <intent-filter>
-		<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-	</intent-filter>
-
-	<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-		android:resource="@xml/device_filter" />
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        
+        <!-- Flutter Generated Plugin Registrant -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-        <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-     
-        
-        
-	<uses-permission android:name="android.permission.CAMERA" />
-        <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    
-    <uses-feature android:name="android.hardware.usb.host" />
-    <uses-permission android:name="android.permission.USB_PERMISSION" />
-
+    <!-- Queries for Text Processing Activities -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
 </manifest>

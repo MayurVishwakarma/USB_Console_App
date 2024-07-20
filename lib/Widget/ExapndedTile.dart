@@ -6,7 +6,7 @@ class ExpandableTile extends StatefulWidget {
   Widget? title;
   Widget? body;
 
-  ExpandableTile({@required this.title, @required this.body});
+  ExpandableTile({super.key, @required this.title, @required this.body});
 
   @override
   _ExpandableTileState createState() => _ExpandableTileState();
@@ -20,8 +20,8 @@ class _ExpandableTileState extends State<ExpandableTile>
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
     _rotation = Tween<double>(begin: 0.0, end: 0.5).animate(_controller!);
   }
 
@@ -44,7 +44,7 @@ class _ExpandableTileState extends State<ExpandableTile>
           title: widget.title,
           trailing: RotationTransition(
             turns: _rotation!,
-            child: Icon(Icons.arrow_drop_down),
+            child: const Icon(Icons.arrow_drop_down),
           ),
         ),
       ),

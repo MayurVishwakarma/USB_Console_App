@@ -1,10 +1,14 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, prefer_const_constructors, unused_field, non_constant_identifier_names, unused_local_variable, unused_catch_stack, file_names, prefer_final_fields, use_build_context_synchronously, prefer_typing_uninitialized_variables, avoid_print, sort_child_properties_last, depend_on_referenced_packages, unused_import, import_of_legacy_library_into_null_safe, void_checks, unnecessary_new
+// ignore_for_file: prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, prefer_const_constructors, unused_field, non_constant_identifier_names, unused_local_variable, unused_catch_stack, file_names, prefer_final_fields, use_build_context_synchronously, prefer_typing_uninitialized_variables, avoid_print, sort_child_properties_last, depend_on_referenced_packages, unused_import, import_of_legacy_library_into_null_safe, void_checks, unnecessary_new, library_prefixes, unnecessary_string_interpolations, await_only_futures
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_usb2/Screens/AutoCommisitoning/Timer.dart';
+import 'package:flutter_application_usb2/Provider/data_provider.dart';
+import 'package:flutter_application_usb2/core/app_export.dart';
+import 'package:flutter_application_usb2/models/loginmodel.dart';
+
 import 'package:get/get.dart';
 import 'package:hex/hex.dart';
 import 'package:intl/intl.dart';
@@ -34,27 +38,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
   String dtbefore = '';
   String dtafter = '';
   List<UsbDevice> _devices = [];
-  List<String> _serialdata = [];
   List<String> _response = [];
   String btntxt = 'Connect';
-
-  String valveOpen = '';
-  String valveClose = '';
-
-  String valveOpen2 = '';
-  String valveClose2 = '';
-
-  String valveOpen3 = '';
-  String valveClose3 = '';
-
-  String valveOpen4 = '';
-  String valveClose4 = '';
-
-  String valveOpen5 = '';
-  String valveClose5 = '';
-
-  String valveOpen6 = '';
-  String valveClose6 = '';
+  String hexDecimalValue = '';
+  String? hexIntgValue = '';
+  String macId = '';
+  bool? isloracheck = false;
+  bool? isSaved = false;
+  String? filePath = '';
 
   String InletButton = '';
   String OutletButton = '';
@@ -65,28 +56,49 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
   String PFCMD4 = '';
   String PFCMD5 = '';
   String PFCMD6 = '';
+
+  String? sov1;
+  String? sov2;
+  String? sov3;
+  String? sov4;
+  String? sov5;
+  String? sov6;
+
+  String? pos1;
+  String? pos2;
+  String? pos3;
+  String? pos4;
+  String? pos5;
+  String? pos6;
+
+  double? posval1;
+  double? posval2;
+  double? posval3;
+  double? posval4;
+  double? posval5;
+  double? posval6;
+
   int? index;
-  String OpenBtn = '';
-  String CloseBtn = '';
-  String accept = '';
   String? controllerType;
+  int? pfcmcdType = 1;
   List<String> _serialData = [];
-  List<String> _data = [];
+  double? ptSetpoint = 2.5;
+  double lowerLimit = 2.5 * 0.9;
+  double upperLimit = 2.5 * 1.1;
+
   String? deviceType;
-  bool isAccept = false;
-  bool _buttonVisible = true;
-  bool _buttonPressed = false;
-  double _progress = 0.0;
   final _formKey = GlobalKey<FormState>();
-  StreamSubscription<String>? _subscription;
   List<int> _dataBuffer = [];
-  Transaction<String>? _transaction;
   StreamSubscription<Uint8List>? _dataSubscription;
-  String Door1 = '';
-  String Door2 = '';
-  double batteryVoltage = 0.0;
-  double solarVoltage = 0.0;
+
+  String? Door1;
+  String? Door2;
+  double? batteryVoltage;
+  double? firmwareversion;
+  double? solarVoltage;
+
   var postionvalue;
+
   var openvalpos1;
   var closevalpos1;
   var openvalpos2;
@@ -100,14 +112,9 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
   var openvalpos6;
   var closevalpos6;
 
-  double? aimAvalue;
-  double? aibarvalue;
-  double? ai2mAvalue;
-  double? ai2barvalue;
+  double? filterInlet;
+  double? filterOutlet;
   AnimationController? _animationController;
-  bool blink = false;
-  bool inlet_blink = false;
-  bool outlet_blink = false;
 
   bool PFCMD1_blink = false;
   bool PFCMD2_blink = false;
@@ -116,65 +123,34 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
   bool PFCMD5_blink = false;
   bool PFCMD6_blink = false;
 
-  bool open1 = false;
-  bool close1 = false;
-  bool open2 = false;
-  bool close2 = false;
-  bool open3 = false;
-  bool close3 = false;
-  bool open4 = false;
-  bool close4 = false;
-  bool open5 = false;
-  bool close5 = false;
-  bool open6 = false;
-  bool close6 = false;
-
-  bool open_pos = false;
-  bool close_pos = false;
-
   String btnstate = '';
-  String deviceName = '';
   String siteName = '';
   String nodeNo = '';
-  bool isTextVisible = false;
-  bool isText2Visible = false;
-  bool isText3Visible = false;
-  bool isShowpop = false;
 
   // outlet pt
-  double? outlet_1_value_controller;
   double? outlet_1_actual_count_controller;
 
 // outlet pt 2
-  double? outlet_2_value_after_controller;
-
   double? outlet_2_actual_count_after_controller;
 
   // outlet pt 3
-  double? outlet_3_value_controller;
   double? outlet_3_actual_count_controller;
 
   // outlet pt 4
-  double? outlet_4_value_controller;
   double? outlet_4_actual_count_controller;
 
   // outlet pt 6
-  double? outlet_6_value_controller;
   double? outlet_6_actual_count_controller;
 
   // outlet pt 5
-  double? outlet_5_value_controller;
   double? outlet_5_actual_count_controller;
 
   Future<bool> _connectTo(UsbDevice? device) async {
     _response.clear();
-    _serialdata.clear();
-
     if (_port != null) {
       await _port!.close();
       _port = null;
     }
-
     if (device == null) {
       setState(() {
         _status = "Disconnected";
@@ -182,7 +158,6 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
       });
       return true;
     }
-
     _port = await device.create();
     if (!await _port!.open()) {
       setState(() {
@@ -190,7 +165,6 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
       });
       return false;
     }
-
     await _port!.setDTR(true);
     await _port!.setRTS(true);
     await _port!.setPortParameters(
@@ -204,8 +178,30 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
       _status = "Connected";
       btntxt = 'Connected';
     });
-
     return true;
+  }
+
+  void onDataReceived(Uint8List data) {
+    _dataBuffer.addAll(data);
+    String completeMessage = String.fromCharCodes(_dataBuffer);
+    String hexData = hex.encode(_dataBuffer);
+    _dataBuffer.clear();
+    setState(() {
+      _response.add(hexData);
+      _serialData.add(completeMessage);
+    });
+
+    if (_serialData.join().contains('INTG')) {
+      if (_serialData.join().contains('BOCOM1')) {
+        hexDecimalValue =
+            reverseString(reverseString(_response.join()).substring(0, 70));
+      } else if (_serialData.join().contains('BOCOM6')) {
+        hexIntgValue =
+            reverseString(reverseString(_response.join()).substring(0, 172));
+      }
+    } else {
+      hexDecimalValue = _response.join();
+    }
   }
 
   @override
@@ -226,30 +222,6 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     _connectTo(null);
   }
 
-  void onDataReceived(Uint8List data) {
-    _dataBuffer.addAll(data);
-    String completeMessage = String.fromCharCodes(_dataBuffer);
-    String hexData = hex.encode(_dataBuffer);
-    _dataBuffer.clear();
-    setState(() {
-      _response.add(hexData);
-      _data.add(completeMessage);
-    });
-    print(_data.join());
-    if (_data.join().contains('INTG')) {
-      if (_data.join().contains('BOCOM1')) {
-        hexDecimalValue =
-            reverseString(reverseString(_response.join()).substring(0, 70));
-      } else if (_data.join().contains('BOCOM6')) {
-        print('New Data:${_data.join()}');
-        hexDecimalValue =
-            reverseString(reverseString(_response.join()).substring(0, 172));
-      }
-    } else {
-      hexDecimalValue = _response.join();
-    }
-  }
-
   Future<void> _getPorts() async {
     final devices = await UsbSerial.listDevices();
     setState(() {
@@ -261,13 +233,11 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     return input.split('').reversed.join('');
   }
 
-  var hexDecimalValue = '';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Auto Commistioing'),
+        title: Text('OMS Auto Commission'),
       ),
       body: getBodyWidget(),
     );
@@ -275,15 +245,23 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
 
   Widget getBodyWidget() {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Clear Console',
+        child: Icon(Icons.clear_all_rounded),
+        onPressed: () {
+          clearSerialData();
+        },
+      ),
       body: Container(
         padding: EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final device in _devices)
-              Card(
-                elevation: 2,
-                color: Colors.blue.shade100,
+              Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: Colors.blueAccent.shade100),
                 child: ListTile(
                   leading: Container(
                       decoration: BoxDecoration(
@@ -308,33 +286,176 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                   ),
                 ),
               ),
-            ElevatedButton(
-              child: Text("SINM"),
-              onPressed: _port == null
-                  ? null
-                  : () async {
-                      if (_port == null) {
-                        return;
-                      }
-                      _progress = 0.0;
-                      _startTask(6).whenComplete(() => Navigator.pop(context));
-                      getpop_loader(context);
-                      String data = "${'SINM'.toUpperCase()}\r\n";
-                      _response.clear();
-                      _data.clear();
-                      hexDecimalValue = '';
-                      await _port!.write(Uint8List.fromList(data.codeUnits));
-                      await getSiteName();
-                      // await setDatetime().then((_) {
-                      //   getINTG();
-                      // });
-                    },
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      child: Text("Get SINM"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      onPressed: _port == null
+                          ? null
+                          : () async {
+                              if (_port == null) {
+                                return;
+                              }
+                              String data = "${'SINM'.toUpperCase()}\r\n";
+                              _response.clear();
+                              _serialData.clear();
+                              hexDecimalValue = '';
+                              await _port!
+                                  .write(Uint8List.fromList(data.codeUnits));
+                              await getSiteName();
+                            },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "${controllerType ?? 'Site-Name'}",
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  ],
+                ),
+                if (controllerType != null &&
+                    controllerType!.contains('BOCOM6'))
+                  Row(
+                    children: [
+                      Text("Controller Type:"),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Radio<int>(
+                            value: 1,
+                            groupValue: pfcmcdType,
+                            onChanged: (value) {
+                              setState(() {
+                                pfcmcdType = value;
+                              });
+                            },
+                          ),
+                          Text('BOC Controller With 6 PT'),
+                          Radio<int>(
+                            value: 2,
+                            groupValue: pfcmcdType,
+                            onChanged: (value) {
+                              setState(() {
+                                pfcmcdType = value;
+                              });
+                            },
+                          ),
+                          Text('BOC Controller With 2 PT'),
+                        ],
+                      )
+                    ],
+                  )
+              ],
             ),
-            if (hexDecimalValue.isNotEmpty) infoCardWidget(),
+            // if (hexDecimalValue.isNotEmpty)
+            infoCardWidget(),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF232323),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        children: _serialData
+                            .map(
+                              (message) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5.0),
+                                child: Text(
+                                  message,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors
+                                        .green, // Set the desired text color here
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+
+            /*Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    child: SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: _serialData
+                            .map(
+                              (widget) => Center(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 5.0),
+                                  child: DefaultTextStyle.merge(
+                                    style: TextStyle(
+                                      color: Colors
+                                          .green, // Set the desired text color here
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    child: Text(widget),
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF232323),
+                      borderRadius: BorderRadius.circular(8),
+
+                      // padding : NEVER FOLD
+                    ),
+                  ),
+                ],
+              ),
+            ),*/
           ],
         ),
       ),
     );
+  }
+
+  clearSerialData() {
+    setState(() {
+      _serialData.clear();
+      _response.clear();
+    });
   }
 
   Widget infoCardWidget() {
@@ -346,3145 +467,60 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
               child: Container(
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Card(
-                        elevation: 7,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: Text(
-                                      'Lora Communication :',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.3,
-                                    child: lora_comm.isEmpty
-                                        ? SizedBox(
-                                            child: Center(
-                                              child: SpinKitFadingCircle(
-                                                size: 30,
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            height: 30,
-                                            width: 20,
-                                          )
-                                        : Text(
-                                            lora_comm,
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: lora_comm == 'Ok'
-                                                    ? Colors.green
-                                                    : Colors.red),
-                                          ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: Text(
-                                      'Battery Voltage :',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.3,
-                                    child: getBatterVoltage() == 0.0
-                                        ? SizedBox(
-                                            child: Center(
-                                              child: SpinKitFadingCircle(
-                                                size: 30,
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            height: 30,
-                                            width: 20,
-                                          )
-                                        : Text(
-                                            batteryVoltage.toString(),
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    child: Text(
-                                      'Solar Voltage :',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.3,
-                                    child: getBatterVoltage() == 0.0
-                                        ? SizedBox(
-                                            child: Center(
-                                              child: SpinKitFadingCircle(
-                                                size: 30,
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            height: 30,
-                                            width: 20,
-                                          )
-                                        : Text(
-                                            getSOLARVoltage().toString(),
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    // color: Colors.blue,
-                                    child: Text(
-                                      'Door 1 :',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.3,
-                                    child: getBatterVoltage() == 0.0
-                                        ? SizedBox(
-                                            child: Center(
-                                              child: SpinKitFadingCircle(
-                                                size: 30,
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            height: 30,
-                                            width: 20,
-                                          )
-                                        : Text(
-                                            '$Door1',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Door1 == 'CLOSE'
-                                                    ? Colors.green
-                                                    : Colors.red),
-                                          ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.5,
-                                    // color: Colors.blue,
-                                    child: Text(
-                                      'Door 2 :',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.3,
-                                    child: getBatterVoltage() == 0.0
-                                        ? SizedBox(
-                                            child: Center(
-                                              child: SpinKitFadingCircle(
-                                                size: 30,
-                                                color: Colors.blue,
-                                              ),
-                                            ),
-                                            height: 30,
-                                            width: 20,
-                                          )
-                                        : Text(
-                                            '$Door2',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Door2 == 'CLOSE'
-                                                    ? Colors.green
-                                                    : Colors.red),
-                                          ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  ElevatedButton(
-                                    child: Text("INTG"),
-                                    onPressed: _port == null
-                                        ? null
-                                        : () async {
-                                            if (_port == null) {
-                                              return;
-                                            }
-                                            _progress = 0.0;
-                                            _startTask(6).whenComplete(
-                                                () => Navigator.pop(context));
-                                            getpop_loader(context);
-                                            String data =
-                                                "${'INTG'.toUpperCase()}\r\n";
-                                            _response.clear();
-                                            _data.clear();
-                                            hexDecimalValue = '';
-                                            await _port!.write(
-                                                Uint8List.fromList(
-                                                    data.codeUnits));
-                                          },
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  ElevatedButton(
-                                    child: Text(
-                                      "Accept",
-                                      style: TextStyle(
-                                          color: _buttonPressed
-                                              ? Colors.white
-                                              : Colors.black),
-                                    ),
-                                    onPressed: _port == null
-                                        ? null
-                                        : () async {
-                                            if (_port == null) {
-                                              return;
-                                            }
-
-                                            setState(() {
-                                              _buttonPressed =
-                                                  true; // Set the button as pressed
-                                            });
-
-                                            inlet_blink = true;
-                                            outlet_blink = true;
-                                            await Future.delayed(
-                                                    Duration(seconds: 3))
-                                                .whenComplete(() {
-                                              getAI1Value();
-                                            });
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      primary: _buttonPressed
-                                          ? Colors.green
-                                          : Colors
-                                              .white, // Button background color
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                    //Lora Communication Check
+                    Container(
+                      margin: EdgeInsets.all(5.5),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 1.5,
+                            spreadRadius: 2.2,
+                            offset: Offset(1.5, 2),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 190, 219, 243),
-                            borderRadius: BorderRadius.circular(5)),
-                        width: double.infinity,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'PT Valve Test',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('Before Inlet PT',
-                                                    style: TextStyle(
-                                                        fontSize: 10)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: inlet_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${aimAvalue ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: inlet_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${aibarvalue ?? ''} bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  InletButton == 'Ok'
-                                                      ? Colors.green
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                InletButton = 'Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  InletButton == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                InletButton = 'Not Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                          height: 50,
-                                          child: Center(
-                                              child: Text('After Inlet PT',
-                                                  style: TextStyle(
-                                                      fontSize: 10)))),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: outlet_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${ai2mAvalue ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: outlet_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${ai2barvalue ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  OutletButton == 'Ok'
-                                                      ? Colors.green
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                OutletButton = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  OutletButton == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                OutletButton = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 190, 219, 243),
-                            borderRadius: BorderRadius.circular(5)),
-                        width: double.infinity,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Outlet PT',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD1',
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD1_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_1_value_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD1_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_1_actual_count_controller ?? ''} bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD1 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD1 = 'Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD1 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD1 = 'Not Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD2',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD2_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_2_value_after_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD2_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_2_actual_count_after_controller ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD2 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD2 = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD2 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD2 = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD3',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD3_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_3_value_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD3_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_3_actual_count_controller ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD3 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD3 = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD3 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD3 = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD4',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD4_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_4_value_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD4_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_4_actual_count_controller ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD4 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD4 = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD4 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD4 = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD5',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD5_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_5_value_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD5_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_5_actual_count_controller ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD5 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD5 = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD5 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD5 = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: InkWell(
-                                        onTap: () {},
-                                        child: SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                                child: Text('PFCMD6',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD6_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_6_value_controller ?? ''} mA',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: PFCMD6_blink
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${outlet_6_actual_count_controller ?? ''} Bar',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PFCMD6 == 'Ok'
-                                                  ? Colors.green
-                                                  : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD6 = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          // width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  PFCMD6 == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                PFCMD6 = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 190, 219, 243),
-                            borderRadius: BorderRadius.circular(5)),
-                        width: double.infinity,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            'Solenoid Testing',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                    ),
-                    //Solonoid
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 1',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 1;
-                                            (index!);
-                                            open1 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                            SetOpenCloseModePFCMD6(index!);
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open1
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos1 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-
-                                    /*Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open1
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos1 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),*/
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 1;
-                                            setValveClosePFCMD6(index!);
-                                            close1 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close1
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos1 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    /* Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close1
-                                            ? SizedBox(
-                                                child: Center(
-                                                  child: SpinKitFadingCircle(
-                                                    size: 30,
-                                                    color: Colors.blue,
-                                                  ),
-                                                ),
-                                                height: 30,
-                                                width: 20,
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos1 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),*/
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 2',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 2;
-                                            SetOpenCloseModePFCMD6(index!);
-                                            open2 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open2
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos2 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen2 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen2 = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen2 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen2 = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 2;
-                                            setValveClosePFCMD6(index!);
-                                            close2 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close2
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos2 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose2 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose2 = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose2 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose2 = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 3',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 3;
-                                            SetOpenCloseModePFCMD6(index!);
-                                            open3 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open3
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos3 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen3 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen3 = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen3 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen3 = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 3;
-                                            setValveClosePFCMD6(index!);
-                                            close3 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close3
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos3 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose3 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose3 = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose3 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose3 = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 4',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 4;
-                                            SetOpenCloseModePFCMD6(index!);
-                                            open4 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open4
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos4 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen4 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen4 = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen4 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen4 = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 4;
-                                            setValveClosePFCMD6(index!);
-                                            close4 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close4
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos4 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose4 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose4 = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose4 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose4 = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 5',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 5;
-                                            SetOpenCloseModePFCMD6(index!);
-                                            open5 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open5
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos5 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen5 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen5 = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen5 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen5 = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 5;
-                                            setValveClosePFCMD6(index!);
-                                            close5 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close5
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos5 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose5 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose5 = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose5 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose5 = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Card(
-                        elevation: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Card(
-                                  color: Colors.blue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Center(
-                                        child: Text('PFCMD 6',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))),
-                                  )),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isTextVisible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('OPEN')),
-                                          onPressed: () {
-                                            _data.clear();
-                                            index = 6;
-                                            SetOpenCloseModePFCMD6(index!);
-                                            open6 = true;
-                                            isTextVisible = false;
-                                            btnstate = 'Open';
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: open6
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${openvalpos6 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen6 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen6 = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen6 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen6 = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                        height: 50,
-                                        child: Center(
-                                            child: TextButton(
-                                          child: FadeTransition(
-                                              opacity: isText2Visible
-                                                  ? _animationController!
-                                                  : AlwaysStoppedAnimation(1.0),
-                                              child: Text('CLOSE')),
-                                          onPressed: () {
-                                            _data.clear;
-                                            index = 6;
-                                            setValveClosePFCMD6(index!);
-                                            close6 = true;
-                                            btnstate = 'Close';
-                                            isText2Visible = false;
-                                          },
-                                        ))),
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.3,
-                                        child: close6
-                                            ? Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  SizedBox(
-                                                    child: Center(
-                                                      child:
-                                                          SpinKitFadingCircle(
-                                                        size: 30,
-                                                        color: Colors.blue,
-                                                      ),
-                                                    ),
-                                                    height: 30,
-                                                    width: 20,
-                                                  ),
-                                                  SizedBox(height: 10),
-                                                  CountdownTimerWidget(
-                                                    duration: const Duration(
-                                                        minutes: 4),
-                                                  ),
-                                                ],
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  '${closevalpos6 ?? ''} %',
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose6 == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose6 = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose6 == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose6 = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isText3Visible)
-                      Container(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 25),
-                              child: ElevatedButton(
-                                  child: Text('Submit',
-                                      style: TextStyle(color: Colors.white)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          5), // Set border radius to 0 for square shape
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    getusername();
-                                    getcurrentdate();
-                                    showSaveDialog(context);
-                                  }),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      } else if (controllerType!.contains('BOCOM1')) {
-        return Expanded(
-            child: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Card(
-                      elevation: 7,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Text(
+                                    'Lora Communication Check',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  child: Text("Check"),
+                                  onPressed: _port == null
+                                      ? null
+                                      : () async {
+                                          if (_port == null) {
+                                            return;
+                                          }
+                                          await setDatetime();
+                                        },
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Divider(),
+                          ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
@@ -3504,7 +540,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.3,
-                                  child: lora_comm.isEmpty
+                                  child: isloracheck!
                                       ? SizedBox(
                                           child: Center(
                                             child: SpinKitFadingCircle(
@@ -3528,6 +564,159 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+
+                    //General Checks
+                    Container(
+                      margin: EdgeInsets.all(5.5),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 1.5,
+                            spreadRadius: 2.2,
+                            offset: Offset(1.5, 2),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Text(
+                                    'General Checks',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  child: Text("Check"),
+                                  onPressed: (_port == null)
+                                      ? null
+                                      : () async {
+                                          if (_port == null) {
+                                            return;
+                                          }
+                                          String data =
+                                              "${'INTG'.toUpperCase()}\r\n";
+                                          _response.clear();
+                                          _serialData.clear();
+                                          hexIntgValue = '';
+                                          await _port!.write(Uint8List.fromList(
+                                              data.codeUnits));
+                                          Future.delayed(Duration(seconds: 6))
+                                              .whenComplete(() async {
+                                            await getAllINTGPacket();
+                                            await getAllPTValues();
+                                            // await getAllPositionSensorValue();
+                                          });
+                                        },
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Divider(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Text(
+                                    'Firmware Version :',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.3,
+                                  child: /* getFirmwareVersion() == 0.0
+                                      ? SizedBox(
+                                          child: Center(
+                                            child: SpinKitFadingCircle(
+                                              size: 30,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                          height: 30,
+                                          width: 20,
+                                        )
+                                      :*/
+                                      Text(
+                                    "${firmwareversion ?? '-'}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.5,
+                                  child: Text(
+                                    'MAC ID :',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.3,
+                                  child: macId == ''
+                                      ? SizedBox(
+                                          child: Center(
+                                            child: SpinKitFadingCircle(
+                                              size: 30,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                          height: 30,
+                                          width: 20,
+                                        )
+                                      : Text(
+                                          macId,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                )
+                              ],
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
@@ -3547,7 +736,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.3,
-                                  child: getBatterVoltage() == 0.0
+                                  child: /*getBatterVoltage() == 0.0
                                       ? SizedBox(
                                           child: Center(
                                             child: SpinKitFadingCircle(
@@ -3558,13 +747,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                           height: 30,
                                           width: 20,
                                         )
-                                      : Text(
-                                          batteryVoltage.toString(),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                      :*/
+                                      Text(
+                                    ("${batteryVoltage ?? '-'}").toString(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 )
                               ],
                             ),
@@ -3588,7 +778,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.3,
-                                  child: getBatterVoltage() == 0.0
+                                  child: /*getBatterVoltage() == 0.0
                                       ? SizedBox(
                                           child: Center(
                                             child: SpinKitFadingCircle(
@@ -3599,13 +789,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                           height: 30,
                                           width: 20,
                                         )
-                                      : Text(
-                                          getSOLARVoltage().toString(),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                      :*/
+                                      Text(
+                                    "${solarVoltage ?? '-'}".toString(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 )
                               ],
                             ),
@@ -3630,7 +821,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.3,
-                                  child: getBatterVoltage() == 0.0
+                                  child: /*getBatterVoltage() == 0.0
                                       ? SizedBox(
                                           child: Center(
                                             child: SpinKitFadingCircle(
@@ -3641,15 +832,16 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                           height: 30,
                                           width: 20,
                                         )
-                                      : Text(
-                                          '$Door1',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Door1 == 'CLOSE'
-                                                  ? Colors.green
-                                                  : Colors.red),
-                                        ),
+                                      : */
+                                      Text(
+                                    Door1 ?? '-',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Door1 == 'CLOSE'
+                                            ? Colors.green
+                                            : Colors.red),
+                                  ),
                                 )
                               ],
                             ),
@@ -3674,7 +866,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.3,
-                                  child: getBatterVoltage() == 0.0
+                                  child: /* getBatterVoltage() == 0.0
                                       ? SizedBox(
                                           child: Center(
                                             child: SpinKitFadingCircle(
@@ -3685,768 +877,2543 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                           height: 30,
                                           width: 20,
                                         )
-                                      : Text(
-                                          '$Door2',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Door2 == 'CLOSE'
-                                                  ? Colors.green
-                                                  : Colors.red),
-                                        ),
+                                      :*/
+                                      Text(
+                                    Door2 ?? '-',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Door2 == 'CLOSE'
+                                            ? Colors.green
+                                            : Colors.red),
+                                  ),
                                 )
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+
+                    //PT Valve Check
+                    Container(
+                      margin: EdgeInsets.all(5.5),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 1.5,
+                            spreadRadius: 2.2,
+                            offset: Offset(1.5, 2),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ElevatedButton(
-                                  child: Text("INTG"),
-                                  onPressed: _port == null
-                                      ? null
-                                      : () async {
-                                          if (_port == null) {
-                                            return;
-                                          }
-                                          _progress = 0.0;
-                                          _startTask(6).whenComplete(
-                                              () => Navigator.pop(context));
-                                          getpop_loader(context);
-                                          String data =
-                                              "${'INTG'.toUpperCase()}\r\n";
-                                          _response.clear();
-                                          _data.clear();
-                                          hexDecimalValue = '';
-                                          await _port!.write(Uint8List.fromList(
-                                              data.codeUnits));
-                                        },
+                                Text(
+                                  'PT Valve Check',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                /*ElevatedButton(
-                                  style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(
-                                      accept == 'accepted'
-                                          ? Colors.green
-                                          : Colors.blue,
+                                Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 2.5),
+                                      child: Text(
+                                        'Pressure Set Point : ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                    minimumSize:
-                                        MaterialStateProperty.all(Size(30, 30)),
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      accept = 'accepted';
-                                    });
-                                    inlet_blink = true;
-                                    outlet_blink = true;
-                                    await Future.delayed(Duration(seconds: 3))
-                                        .whenComplete(() {
-                                      getAI1Value();
-                                    });
-                                  },
-                                  child: Text(
-                                    'Accept',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                               */
-                                SizedBox(width: 5),
-                                ElevatedButton(
-                                  child: Text(
-                                    "Accept",
-                                    style: TextStyle(
-                                        color: _buttonPressed
-                                            ? Colors.white
-                                            : Colors.black),
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      accept = 'accepted';
-                                    });
-                                    inlet_blink = true;
-                                    outlet_blink = true;
-                                    await Future.delayed(Duration(seconds: 3))
-                                        .whenComplete(() {
-                                      getAI1Value();
-                                    });
-                                  },
-                                  /* onPressed: _port == null
-                                      ? null
-                                      : () async {
-                                          if (_port == null) {
-                                            return;
-                                          }
-
-                                          setState(() {
-                                            _buttonPressed =
-                                                true; // Set the button as pressed
-                                          });
-
-                                          inlet_blink = true;
-                                          outlet_blink = true;
-                                          await Future.delayed(
-                                                  Duration(seconds: 3))
-                                              .whenComplete(() {
-                                            getAI1Value();
-                                          });
-                                        },*/
-                                  style: ElevatedButton.styleFrom(
-                                    primary: _buttonPressed
-                                        ? Colors.green
-                                        : Colors
-                                            .white, // Button background color
-                                  ),
+                                    SizedBox(
+                                        width: 50,
+                                        child: TextFormField(
+                                          // enabled: isEdit(),
+                                          initialValue: ptSetpoint.toString(),
+                                          decoration: InputDecoration(
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  width: 1, color: Colors.blue),
+                                            ),
+                                            suffixText: 'bar',
+                                          ),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              ptSetpoint =
+                                                  double.tryParse(value);
+                                              lowerLimit =
+                                                  (ptSetpoint ?? 0.0) * 0.9;
+                                              upperLimit =
+                                                  (ptSetpoint ?? 0.0) * 1.1;
+                                            });
+                                          },
+                                        )),
+                                  ],
                                 )
                               ],
                             ),
-                          )
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                                "Connect external pressure kit, Set pressure set point and When pressure generated in pipe line press Check PT values" /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: ElevatedButton(
+                              child: Text("Check PT Value"),
+                              onPressed: _port == null
+                                  ? null
+                                  : () async {
+                                      if (_port == null) {
+                                        return;
+                                      }
+                                      String data =
+                                          "${'INTG'.toUpperCase()}\r\n";
+                                      _response.clear();
+                                      _serialData.clear();
+                                      hexIntgValue = '';
+                                      await _port!.write(
+                                          Uint8List.fromList(data.codeUnits));
+                                      Future.delayed(Duration(seconds: 5))
+                                          .whenComplete(() async {
+                                        getAllPTValues();
+                                      });
+                                    },
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Divider(),
+                          ),
+                          //Inlet valve Check
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Center(
+                                            child: Text(
+                                                '${pfcmcdType == 1 ? "Filter Inlet PT" : "Inlet PT"}',
+                                                style:
+                                                    TextStyle(fontSize: 10))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${filterInlet ?? ''} Bar',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: InletButton,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: InletButton,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    '${pfcmcdType == 1 ? "Filter Outlet PT" : "Outlet PT"}',
+                                                    style: TextStyle(
+                                                        fontSize: 10)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${filterOutlet ?? ''} Bar',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: OutletButton,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: OutletButton,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (pfcmcdType == 1)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Divider(),
+                            ),
+                          //Outlet valve Check
+                          if (pfcmcdType == 1)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 1',
+                                                      style: TextStyle(
+                                                          fontSize: 11,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD1_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_1_actual_count_controller ?? ''} bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD1,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD1,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 2',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD2_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_2_actual_count_after_controller ?? ''} Bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD2,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD2,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 3',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD3_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_3_actual_count_controller ?? ''} Bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD3,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD3,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 4',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD4_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_4_actual_count_controller ?? ''} Bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD4,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD4,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 5',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD5_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_5_actual_count_controller ?? ''} Bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD5,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD5,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: SizedBox(
+                                              height: 50,
+                                              child: Center(
+                                                  child: Text('Outlet PT 6',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight
+                                                              .bold)))),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.3,
+                                            child: PFCMD6_blink
+                                                ? SizedBox(
+                                                    child: Center(
+                                                      child:
+                                                          SpinKitFadingCircle(
+                                                        size: 30,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                    height: 30,
+                                                    width: 20,
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      '${outlet_6_actual_count_controller ?? ''} Bar',
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Radio<String>(
+                                              value: 'OK',
+                                              groupValue: PFCMD6,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('OK'),
+                                            Radio<String>(
+                                              value: 'Faulty',
+                                              groupValue: PFCMD6,
+                                              onChanged: (value) {},
+                                            ),
+                                            Text('Faulty'),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 190, 219, 243),
-                          borderRadius: BorderRadius.circular(5)),
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'PT Valve Test',
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                          textAlign: TextAlign.start,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Card(
-                      elevation: 7,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    flex: 1,
-                                    child: InkWell(
-                                      onTap: () {},
-                                      child: SizedBox(
-                                          height: 50,
-                                          child:
-                                              Center(child: Text('Inlet PT'))),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: inlet_blink
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${aimAvalue ?? ''} mA',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: inlet_blink
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${aibarvalue ?? ''} bar',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  InletButton == 'Ok'
-                                                      ? Colors.green
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                InletButton = 'Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  InletButton == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                InletButton = 'Not Ok';
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    flex: 1,
-                                    child: SizedBox(
-                                        height: 50,
-                                        child:
-                                            Center(child: Text('Outlet PT'))),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: outlet_blink
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${ai2mAvalue ?? ''} mA',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: outlet_blink
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${ai2barvalue ?? ''} Bar',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          height: 40,
-                                          width: 50,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  OutletButton == 'Ok'
-                                                      ? Colors.green
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                OutletButton = 'Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                          height: 40,
-                                          width: 56,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  OutletButton == 'Not Ok'
-                                                      ? Colors.red
-                                                      : Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    5), // Set border radius to 0 for square shape
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                OutletButton = 'Not Ok';
-                                                isTextVisible = true;
-                                              });
-                                            },
-                                            child: Text(
-                                              'Not Ok',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize:
-                                                      10), // Adjust the button font size here
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 190, 219, 243),
-                          borderRadius: BorderRadius.circular(5)),
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Solenoid Testing',
-                          style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
-                          textAlign: TextAlign.start,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Card(
-                      elevation: 7,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                      height: 50,
-                                      child: Center(
-                                          child: TextButton(
-                                        child: FadeTransition(
-                                            opacity: isTextVisible
-                                                ? _animationController!
-                                                : AlwaysStoppedAnimation(1.0),
-                                            child: Text('OPEN')),
-                                        onPressed: () {
-                                          SetOpenCloseMode1PFCMD();
-                                          open_pos = true;
-                                          isTextVisible = false;
-                                          btnstate = 'Open';
-                                        },
-                                      ))),
-                                  Expanded(
-                                    flex: 1,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: open_pos
-                                          ? Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                SizedBox(
-                                                  child: Center(
-                                                    child: SpinKitFadingCircle(
-                                                      size: 30,
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                  height: 30,
-                                                  width: 20,
-                                                ),
-                                                SizedBox(height: 10),
-                                                CountdownTimerWidget(
-                                                  duration: const Duration(
-                                                      minutes: 4),
-                                                ),
-                                              ],
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${postionvalue ?? ''} %',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  /*Expanded(
-                                    flex: 1,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: open_pos
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${postionvalue ?? ''} %',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  */
-                                  Expanded(
-                                    flex: 2,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  OpenBtn = 'OK';
-                                                  valveOpen = 'Open';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveOpen == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveOpen = 'Close';
-                                                  OpenBtn = 'Not OK';
-                                                  isText2Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                      height: 50,
-                                      child: Center(
-                                          child: TextButton(
-                                        child: FadeTransition(
-                                            opacity: isText2Visible
-                                                ? _animationController!
-                                                : AlwaysStoppedAnimation(1.0),
-                                            child: Text('CLOSE')),
-                                        onPressed: () {
-                                          close_pos = true;
-                                          btnstate = 'Close';
-                                          isText2Visible = false;
-                                          setValveClose1PFCMD();
-                                        },
-                                      ))),
-                                  Expanded(
-                                    flex: 1,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: close_pos
-                                          ? Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                SizedBox(
-                                                  child: Center(
-                                                    child: SpinKitFadingCircle(
-                                                      size: 30,
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                  height: 30,
-                                                  width: 20,
-                                                ),
-                                                SizedBox(height: 10),
-                                                CountdownTimerWidget(
-                                                  duration: const Duration(
-                                                      minutes: 4),
-                                                ),
-                                              ],
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${postionvalue ?? ''} %',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                  /*Expanded(
-                                    flex: 1,
-                                    child: SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.3,
-                                      child: close_pos
-                                          ? SizedBox(
-                                              child: Center(
-                                                child: SpinKitFadingCircle(
-                                                  size: 30,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              height: 30,
-                                              width: 20,
-                                            )
-                                          : Center(
-                                              child: Text(
-                                                '${postionvalue ?? ''} %',
-                                              ),
-                                            ),
-                                    ),
-                                  ),
-                                 */
-                                  Expanded(
-                                    flex: 2,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text('OK',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose == 'Open'
-                                                          ? Colors.green
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  valveClose = 'Open';
-                                                  CloseBtn = 'OK';
-                                                  isText3Visible = true;
-                                                },
-                                              ),
-                                            )),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        SizedBox(
-                                            height: 50,
-                                            child: Center(
-                                              child: ElevatedButton(
-                                                child: Text(
-                                                  'NOT OK',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      valveClose == 'Close'
-                                                          ? Colors.red
-                                                          : Colors.blue,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5), // Set border radius to 0 for square shape
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  isText3Visible = true;
-                                                  valveClose = 'Close';
-                                                  CloseBtn = 'Not OK';
-                                                },
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (isText3Visible)
+                    //Position Sensor
                     Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                      margin: EdgeInsets.all(5.5),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 1.5,
+                            spreadRadius: 2.2,
+                            offset: Offset(1.5, 2),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(right: 25),
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Position Sensor Check',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                                "Click on Check Position Valve to get position sensor values (if you didn't get any response please click on the Position titel to get the value for the perticular position valve ) " /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
                             child: ElevatedButton(
-                                child: Text('Submit',
-                                    style: TextStyle(color: Colors.white)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        5), // Set border radius to 0 for square shape
+                              child: Text("Check Position Valve"),
+                              onPressed: _port == null
+                                  ? null
+                                  : () async {
+                                      if (_port == null) {
+                                        return;
+                                      }
+
+                                      getAllPositionSensorValue();
+                                      // String data =
+                                      //     "${'INTG'.toUpperCase()}\r\n";
+                                      // _response.clear();
+                                      // _serialData.clear();
+                                      // hexIntgValue = '';
+                                      // await _port!.write(
+                                      //     Uint8List.fromList(data.codeUnits));
+                                      // Future.delayed(Duration(seconds: 5))
+                                      //     .whenComplete(() async {
+                                      //   getAllPositionSensorValue();
+                                      // });
+                                    },
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Divider(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                //pos 1
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion1Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 1 :',
+                                                    style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval1 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos1,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos1,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                onPressed: () {
-                                  getusername();
-                                  getcurrentdate();
-                                  showSaveDialog(context);
-                                }),
+                                //pos 2
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion2Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 2 :',
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval2 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos2,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos2,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //pos 3
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion3Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 3 :',
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval3 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos3,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos3,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //pos 4
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion4Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 4 :',
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval4 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos4,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos4,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //pos 5
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion5Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 5 :',
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval5 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos5,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos5,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                //pos 6
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => getPostion6Value(),
+                                        child: SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                                child: Text(
+                                                    'Position Sensor 6 :',
+                                                    style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold)))),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3,
+                                          child: Center(
+                                            child: Text(
+                                              '${posval6 ?? ''} mA',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Radio<String>(
+                                            value: 'OK',
+                                            groupValue: pos6,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('OK'),
+                                          Radio<String>(
+                                            value: 'Faulty',
+                                            groupValue: pos6,
+                                            onChanged: (value) {},
+                                          ),
+                                          Text('Faulty'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                ],
+                    //Solonoid
+                    Container(
+                      margin: EdgeInsets.all(5.5),
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 1.5,
+                            spreadRadius: 2.2,
+                            offset: Offset(1.5, 2),
+                          )
+                        ],
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Solenoid Check',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                                "Observe opening & closing of solenoid valve and click on Ok / Faluty"),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Divider(),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                //SOV 1
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 1',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov1Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov1SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(1);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        1);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov1,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov1 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov1,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov1 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 2',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov2Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov2SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(2);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        2);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov2,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov2 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov2,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov2 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 3',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov3Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov3SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(3);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        3);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov3,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov3 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov3,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov3 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 4',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov4Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov4SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(4);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        4);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov4,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov4 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov4,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov4 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 5',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov5Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov5SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(5);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        5);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov5,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov5 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov5,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov5 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(10),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double buttonHeight =
+                                          constraints.maxWidth *
+                                              0.08; // Adjust as needed
+                                      double buttonWidth =
+                                          constraints.maxWidth *
+                                              0.15; // Adjust as needed
+                                      double fontSize = constraints.maxWidth *
+                                          0.03; // Adjust as needed
+                                      double smallFontSize =
+                                          constraints.maxWidth *
+                                              0.02; // Adjust as needed
+
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Text(
+                                                'SOV 6',
+                                                style: TextStyle(
+                                                  fontSize: fontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setSov6Opneclose();
+                                                  },
+                                                  child: Text(
+                                                    'Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      spreadRadius: 1,
+                                                      blurRadius: 1.5,
+                                                      offset: Offset(1, 1.5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    await setSov6SMode();
+                                                  },
+                                                  child: Text(
+                                                    'S-Mode',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: smallFontSize,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveOpenPFCMD6(6);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Open',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 5),
+                                              SizedBox(
+                                                height: buttonHeight,
+                                                width: buttonWidth,
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors
+                                                        .blueAccent.shade200,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    await setValveClosePFCMD6(
+                                                        6);
+                                                  },
+                                                  child: FittedBox(
+                                                    child: Text(
+                                                      'Close',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: smallFontSize,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'OK',
+                                                    groupValue: sov6,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov6 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'OK',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Radio<String>(
+                                                    value: 'Faulty',
+                                                    groupValue: sov6,
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sov6 = value ?? "";
+                                                      });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                    'Faulty',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            smallFontSize),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    //Save
+                    Container(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                                'Make sure all the test came out successfully and then click the button bellow'),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: 25),
+                                child: ElevatedButton(
+                                    child: Text('Submit',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      getusername();
+                                      getcurrentdate();
+                                      showSaveDialog(context);
+                                    }),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // set Solenoid to Flow Control mode.
+                    if (isSaved!)
+                      Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                  'Your PDF was saved successfully ${filePath} now please set all the solenoid to Flow Control mode.'),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                    child: Text('sov 1',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov1FlowControl();
+                                    }),
+                                ElevatedButton(
+                                    child: Text('sov 2',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov2FlowControl();
+                                    }),
+                                ElevatedButton(
+                                    child: Text('sov 3',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov3FlowControl();
+                                    }),
+                                ElevatedButton(
+                                    child: Text('sov 4',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov4FlowControl();
+                                    }),
+                                ElevatedButton(
+                                    child: Text('sov 5',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov5FlowControl();
+                                    }),
+                                ElevatedButton(
+                                    child: Text('sov 6',
+                                        style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            5), // Set border radius to 0 for square shape
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      await setSov6FlowControl();
+                                    }),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
-        ));
+        );
       } else {
         return Center(
           child: SizedBox(
@@ -4467,16 +3434,16 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                       color: Colors.grey),
                 ),
                 Text(
-                  'You have connected to unknown device${controllerType!}',
+                  'You have connected to unknown device${controllerType ?? ""}',
                   textAlign: TextAlign.center,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 25.0),
                   child: TextButton(
                     onPressed: () async {
-                      _progress = 0.0;
+                      // _progress = 0.0;
                       _response.clear();
-                      _data.clear();
+                      _serialData.clear();
                       hexDecimalValue = '';
                       getSiteName();
                     },
@@ -4497,7 +3464,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     } catch (ex, _) {
       return Container(
         child: Center(
-          child: Text('Something  Went Wrong'),
+          child: Text('Click On Get SINM to Find Device Type'),
         ),
       );
     }
@@ -4505,357 +3472,304 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
 
   setDatetime() async {
     try {
+      _serialData.clear();
+
+      isloracheck = true;
+      lora_comm = '';
       String data = "${('dts 0000 00 00 00 00 00').toUpperCase()}\r\n";
       await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 6)).whenComplete(() async {
-        String res = _data.join('');
+      await Future.delayed(Duration(seconds: 5)).whenComplete(() async {
+        String res = _serialData.join('');
         int i = res.indexOf("DT");
         dtbefore = res.substring(i + 4, i + 18);
         _response = [];
-
         String rebootData = "${'RBT'.toUpperCase()}\r\n";
         await _port!.write(Uint8List.fromList(rebootData.codeUnits));
 
-        await Future.delayed(Duration(seconds: 6)).whenComplete(() async {
-          String newData = "${'dts'.toUpperCase()}\r\n";
-          await _port!.write(Uint8List.fromList(newData.codeUnits));
-          await Future.delayed(Duration(seconds: 6));
-          res = _data.join('');
-          i = res.indexOf("DT");
-          dtafter = res.substring(i + 4, i + 21);
-          if (dtbefore == dtafter) {
-            lora_comm = 'Not Ok';
-            if (lora_comm == 'Not Ok' && batteryVoltage == 0.0) {
-              Future.delayed(Duration(seconds: 15)).whenComplete(() {
-                blink = true;
-              });
-            }
-          } else {
-            lora_comm = 'Ok';
-            if (lora_comm == 'Ok' && batteryVoltage == 0.0) {
-              Future.delayed(Duration(seconds: 15)).whenComplete(() {
-                blink = true;
-              });
-            }
-          }
+        await Future.delayed(Duration(seconds: 30)).whenComplete(() async {
+          getDatetime();
         });
-      }).whenComplete(() => getINTG());
+      });
     } catch (_, ex) {
-      _serialdata.add('Please Try Again...');
+      _serialData.add('Please Try Again...');
     }
   }
 
-  getINTG() async {
-    _data.clear();
-    String data = "${'intg'.toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
-      String res = _data.join('');
-      if (res.toLowerCase().contains('matched')) {
-        getPostion();
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Success"),
-              content: Text("INTG Command Sent Successfully"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // getPostion_pfcmd_1();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("OK"),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Devices is not able to revive data',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          getINTG();
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-        // return false;
-      }
-    });
+  Future<void> getDatetime() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'dts'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(() {
+        print(_serialData);
+        String res = _serialData.join('');
+        int i = res.indexOf("DT");
+        String dateTime = res.substring(i + 4, i + 21).replaceAll('>', '');
+        List<int> dateParts =
+            dateTime.split(' ').map((part) => int.parse(part)).toList();
+
+        int year = dateParts[0];
+        int month = dateParts[1];
+        int day = dateParts[2];
+        int hour = dateParts[3];
+        int minute = dateParts[4];
+        int second = dateParts[5];
+
+        final DateFormat formatter = DateFormat('yyyy/MM/dd HH:mm:ss');
+
+        DateTime deviceDateTime =
+            DateTime(year, month, day, hour, minute, second);
+        DateTime currentDateTime = DateTime.now();
+
+        // Calculate the difference
+        Duration difference = currentDateTime.difference(deviceDateTime).abs();
+
+        // Check if the difference is within 10 minutes
+        setState(() {
+          if (difference.inMinutes <= 10) {
+            lora_comm = 'Ok';
+          } else {
+            lora_comm = 'Not Ok';
+          }
+        });
+
+        String deviceTime = formatter.format(deviceDateTime);
+        String currTime = formatter.format(currentDateTime);
+
+        print("DeviceTime: $deviceTime Curr Time: $currTime");
+        setState(() {
+          isloracheck = false;
+        });
+        // if (_datetimecontroller.text.isEmpty) {
+        //   // getDatetime();
+        // }
+      });
+      _response = [];
+    } catch (ex) {
+      print("Error: $ex");
+      throw Exception("Failed to get datetime");
+    }
   }
 
-  getINTG2(int index) async {
-    _data.clear();
-    String data = "${'intg'.toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 8)).whenComplete(() {
-      String res = _data.join('');
-      print(res);
-      if (res.contains('PacketBOCOM6')) {
-        switch (index) {
-          case 1:
-            getPostion_pfcmd_1();
-            break;
-          case 2:
-            getPostion_pfcmd_2();
-            break;
-          case 3:
-            getPostion_pfcmd_3();
-            break;
-          case 4:
-            getPostion_pfcmd_4();
-            break;
-          case 5:
-            getPostion_pfcmd_5();
-            break;
-          case 6:
-            getPostion_pfcmd_6();
-            break;
-          default:
-        }
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Success"),
-              content: Text("INTG Command Sent Successfully"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // getPostion_pfcmd_1();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("OK"),
-                ),
-              ],
-            );
-          },
-        );
-      } else if (res.contains('PacketBOCOM1')) {
-        getPostion();
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Device is unable to fetch the data from device ',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          getINTG2(index);
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
+  getMID() async {
+    try {
+      _serialData.clear();
+      String data = "${'mid'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          print(res);
+          int i = res.indexOf("MI");
+          String substring = res.substring(i + 4, i + 20);
+          RegExp pattern = RegExp(r'^[0-9A-F]{16}$');
+          bool matchesPattern = pattern.hasMatch(substring);
+          if (matchesPattern) {
+            setState(() {
+              macId = res.substring(i + 4, i + 20);
+            });
+            /* showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: SizedBox(
+                    height: 260, //MediaQuery.of(context).size.height * 0.35,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image(
+                          image: AssetImage('assets/images/success.gif'),
+                          height: 120,
+                          width: 120,
                         ),
-                      ),
+                        Text(
+                          'Connected',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                        ),
+                        Text(
+                          'Your device is connected to ' +
+                              controllerType?? "".toString(),
+                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 25.0),
+                          child: TextButton(
+                            onPressed: () {
+                              _progress = 0.0;
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              'OK',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
-          },
-        );
-      }
-    });
-  }
+         */
+          } else {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: SizedBox(
+                    height: 260, //MediaQuery.of(context).size.height * 0.35,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image(
+                          image: AssetImage('assets/images/wrong.gif'),
+                          height: 120,
+                          width: 120,
+                        ),
+                        Text(
+                          'Mac Id Not Found',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey),
+                        ),
+                        Text(
+                          'This Device is unable to get mac id from controller',
+                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 25.0),
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              getMID();
+                              // _startTask(15);
+                              // getpop_loader(context);
+                              // Future.delayed(Duration(milliseconds: 15), () {
+                              //   Navigator.pop(context); //pop dialog
+                              // });
+                              // Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              'Retry',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+        },
+      );
 
-  SetOpenCloseMode1PFCMD() {
-    String data = "${'PFCMD1TYPE  1 '.toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-      if (res.toLowerCase().contains('matched')) {
-        setValveOpen1PFCMD();
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Devices is not able to Set Mode In Open/Close',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          SetOpenCloseMode1PFCMD();
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
-                        ),
+      _response = [];
+    } catch (_, ex) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Mac Id Not Found',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'This Device is unable to get mac id from controller',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        getMID();
+                        // _progress = 0.0;
+                        // _startTask(15);
+                        // getpop_loader(context);
+                        // Future.delayed(Duration(seconds: 16), () {
+                        //   Navigator.pop(context); //pop dialog
+                        // });
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          },
-        );
-      }
-    });
-  }
-
-  SetOpenCloseModePFCMD6(int index) {
-    String data = "${'PFCMD6TYPE $index 1 '.toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-      if (res.toLowerCase().contains('matched')) {
-        setValveOpenPFCMD6(index);
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Devices is not able to Set Mode In Open/Close',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          SetOpenCloseModePFCMD6(index);
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }
-    });
+            ),
+          );
+        },
+      );
+      macId = 'NOT FOUND';
+      _serialData.add('Please Try Again...');
+    }
   }
 
   setValveOpenPFCMD6(int index) {
-    _data.clear();
+    _serialData.clear();
     String data = "${('PFCMD6ONOFF $index 1').toUpperCase()}\r\n";
     _port!.write(Uint8List.fromList(data.codeUnits));
     new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-
+      String res = _serialData.join('');
+      print(res);
       if (res.toLowerCase().contains('pfcmd$index on')) {
-        Future.delayed(Duration(minutes: 3)).whenComplete(() async {
-          await getINTG2(index);
+        Future.delayed(Duration(seconds: 5)).whenComplete(() async {
+          print("PFCMD $index is OPEN now");
+
+          switch (index) {
+            case 1:
+              openvalpos1 = true;
+              break;
+            case 2:
+              openvalpos2 = true;
+              break;
+            case 3:
+              openvalpos3 = true;
+              break;
+            case 4:
+              openvalpos4 = true;
+              break;
+            case 5:
+              openvalpos5 = true;
+              break;
+            case 6:
+              openvalpos6 = true;
+              break;
+            default:
+              print('open');
+          }
         });
       } else {
-        showDialog(
+        /*showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -4902,23 +3816,99 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
             );
           },
         );
+      */
       }
     });
   }
 
   setValveClosePFCMD6(int index) {
-    _data.clear();
+    _serialData.clear();
     String data = "${('PFCMD6ONOFF $index 0').toUpperCase()}\r\n";
     _port!.write(Uint8List.fromList(data.codeUnits));
     new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-
+      String res = _serialData.join('');
       if (res.toLowerCase().contains('pfcmd$index off')) {
-        Future.delayed(Duration(minutes: 3)).whenComplete(() async {
-          await getINTG2(index);
+        Future.delayed(Duration(seconds: 5)).whenComplete(() async {
+          print("PFCMD $index is CLOSE now");
+          switch (index) {
+            case 1:
+              closevalpos1 = true;
+              if (openvalpos1 && closevalpos1) {
+                setState(() {
+                  sov1 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov1 = 'Faulty';
+                });
+              }
+              break;
+            case 2:
+              closevalpos2 = true;
+              if (openvalpos2 && closevalpos2) {
+                setState(() {
+                  sov2 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov2 = 'Faulty';
+                });
+              }
+              break;
+            case 3:
+              closevalpos3 = true;
+              if (openvalpos3 && closevalpos3) {
+                setState(() {
+                  sov3 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov3 = 'Faulty';
+                });
+              }
+              break;
+            case 4:
+              closevalpos4 = true;
+              if (openvalpos4 && closevalpos4) {
+                setState(() {
+                  sov4 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov4 = 'Faulty';
+                });
+              }
+              break;
+            case 5:
+              closevalpos5 = true;
+              if (openvalpos5 && closevalpos5) {
+                setState(() {
+                  sov5 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov5 = 'Faulty';
+                });
+              }
+              break;
+            case 6:
+              closevalpos6 = true;
+              if (openvalpos6 && closevalpos6) {
+                setState(() {
+                  sov6 = 'OK';
+                });
+              } else {
+                setState(() {
+                  sov6 = 'Faulty';
+                });
+              }
+              break;
+            default:
+              print('');
+          } // await getINTG2(index);
         });
       } else {
-        showDialog(
+        /*showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -4965,215 +3955,41 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
             );
           },
         );
+      */
       }
     });
-  }
-
-  setValveOpen1PFCMD() {
-    _data.clear();
-    String data = "${('PFCMD1ONOFF 1').toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-
-      if (res.toLowerCase().contains('pfcmd1 on')) {
-        Future.delayed(Duration(minutes: 3)).whenComplete(() async {
-          await getINTG2(0);
-        });
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Devices is not able to Open valve',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          setValveOpen1PFCMD();
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }
-    });
-  }
-
-  setValveClose1PFCMD() {
-    _data.clear();
-    String data = "${('PFCMD1ONOFF 0').toUpperCase()}\r\n";
-    _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 10)).whenComplete(() {
-      String res = _data.join('');
-
-      if (res.toLowerCase().contains('pfcmd1 off')) {
-        Future.delayed(Duration(minutes: 3)).whenComplete(() async {
-          await getINTG2(0);
-        });
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: SizedBox(
-                height: 260, //MediaQuery.of(context).size.height * 0.35,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/wrong.gif'),
-                      height: 120,
-                      width: 120,
-                    ),
-                    Text(
-                      'Command Revived Ended.',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
-                    Text(
-                      'Devices is not able to Close Valve',
-                      textAlign: TextAlign.center,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25.0),
-                      child: TextButton(
-                        onPressed: () {
-                          setValveClose1PFCMD();
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Retry',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }
-    });
-  }
-
-  getpop(context) {
-    return showDialog(
-      barrierDismissible: false,
-      useSafeArea: true,
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: AnimatedContainer(
-          duration:
-              Duration(milliseconds: 500), // Set the desired animation duration
-          curve: Curves.easeInOut, // Set the desired animation curve
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-
-          child: SizedBox(
-            height: 260,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image(
-                    image: AssetImage('assets/images/Iphone-spinner-2.gif'),
-                    height: 80,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Sending Command...',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  getPostion() {
-    var subString3;
-    try {
-      subString3 = hexDecimalValue.substring(42, 46);
-      int decimal = int.parse(subString3, radix: 16);
-      postionvalue = (decimal / 100).toString();
-      if (btnstate == 'Open') {
-        open_pos = false;
-      } else if (btnstate == 'Close') {
-        close_pos = false;
-      }
-      print('data postion value' + postionvalue);
-    } catch (_, ex) {
-      postionvalue = 'NULL';
-    }
   }
 
   double getBatterVoltage() {
     var subString2;
-    // double batteryVoltage;
     try {
-      subString2 = hexDecimalValue.substring(12, 16);
+      subString2 = hexIntgValue?.substring(12, 16);
       int decimal = int.parse(subString2, radix: 16);
       batteryVoltage = (decimal / 100);
       getAlarms();
     } catch (_, ex) {
       batteryVoltage = 0.0;
     }
-    return batteryVoltage;
+    return batteryVoltage!;
+  }
+
+  double getFirmwareVersion() {
+    var subString3;
+    firmwareversion;
+    try {
+      subString3 = hexIntgValue?.substring(28, 30);
+      int decimal = int.parse(subString3, radix: 16);
+      firmwareversion = (decimal / 10);
+    } catch (_, ex) {
+      firmwareversion = 0.0;
+    }
+    return firmwareversion!;
   }
 
   getSOLARVoltage() {
     var subString3;
-    // var BatteryVoltage;
     try {
-      subString3 = hexDecimalValue.substring(16, 20);
+      subString3 = hexIntgValue?.substring(16, 20);
       int decimal = int.parse(subString3, radix: 16);
       solarVoltage = (decimal / 100).toDouble();
     } catch (_, ex) {
@@ -5184,12 +4000,11 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
 
   getAlarms() {
     var hexvalue;
-    var BatteryVoltage;
     String binaryNumber;
     List<String> binaryValues = [];
 
     try {
-      hexvalue = hexDecimalValue.substring(30, 34);
+      hexvalue = hexIntgValue?.substring(30, 34);
       int decimalNumber = int.parse(hexvalue, radix: 16);
       binaryNumber = decimalNumber.toRadixString(2).padLeft(16, '0');
     } catch (_, ex) {
@@ -5206,29 +4021,1119 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     });
   }
 
-  getAI1Value() async {
-    String ai1;
-    String barvalue;
+  getAllPTValues() async {
+    await getFilterInlet();
+    await getFilterOutlet();
+    await getPT1value();
+    await getPT2value();
+    await getPT3value();
+    await getPT4value();
+    await getPT5value();
+    await getPT6value();
+  }
+
+  getFilterInlet() {
     try {
-      String data = "${'ai 1'.toUpperCase()}\r\n";
+      var filterinlethex = hexIntgValue?.substring(20, 24);
+      int decimal = int.parse(filterinlethex ?? "", radix: 16);
+      double ai1 = (decimal / 100);
+      bool isWithinRange = ai1 >= lowerLimit && ai1 <= upperLimit;
+      print(
+          'Filter Inlet: ${ai1.toStringAsFixed(3)}'); // Format to 3 decimal places
+      print('Is filterInlet between 2.25 and 2.75? $isWithinRange');
+
+      setState(() {
+        filterInlet = ai1;
+        if (isWithinRange) {
+          InletButton = 'OK';
+        } else {
+          InletButton = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getFilterOutlet() {
+    try {
+      var filteroutlethex = hexIntgValue?.substring(24, 28);
+      int decimal = int.parse(filteroutlethex ?? "", radix: 16);
+      double ai2 = (decimal / 100);
+      print('Filter Outlet PT $ai2');
+      bool isWithinRange = ai2 >= lowerLimit && ai2 <= upperLimit;
+      print('Is filterOutlet between 2.25 and 2.75? $isWithinRange');
+
+      setState(() {
+        filterOutlet = ai2;
+        if (isWithinRange) {
+          OutletButton = 'OK';
+        } else {
+          OutletButton = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPT1value() {
+    try {
+      var outletPt1hex = hexIntgValue?.substring(38, 42);
+      int decimal = int.parse(outletPt1hex ?? "", radix: 16);
+      var outletpt1 = (decimal / 100);
+      bool isWithinRange = outletpt1 >= lowerLimit && outletpt1 <= upperLimit;
+      print('Is OutletPT-1 between 2.25 and 2.75? $isWithinRange');
+      setState(() {
+        outlet_1_actual_count_controller = outletpt1;
+        if (isWithinRange) {
+          PFCMD1 = 'OK';
+        } else {
+          PFCMD1 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPT2value() {
+    try {
+      var outletPt2hex = hexIntgValue?.substring(58, 62);
+      int decimal = int.parse(outletPt2hex ?? "", radix: 16);
+      var outletpt2 = (decimal / 100);
+      print(outletpt2.toString());
+      bool isWithinRange = outletpt2 >= lowerLimit && outletpt2 <= upperLimit;
+      print(
+          'Is OutletPt-2 between $lowerLimit and $upperLimit? $isWithinRange');
+      setState(() {
+        outlet_2_actual_count_after_controller = outletpt2;
+        if (isWithinRange) {
+          PFCMD2 = 'OK';
+        } else {
+          PFCMD2 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPT3value() {
+    try {
+      var outletPt3hex = hexIntgValue?.substring(78, 82);
+      int decimal = int.parse(outletPt3hex ?? "", radix: 16);
+      double outletpt3 = (decimal / 100);
+      print(outletpt3.toString());
+      bool isWithinRange = outletpt3 >= lowerLimit && outletpt3 <= upperLimit;
+      print(
+          'Is OutletPt-3 between $lowerLimit and $upperLimit? $isWithinRange');
+      setState(() {
+        outlet_3_actual_count_controller = outletpt3;
+        if (isWithinRange) {
+          PFCMD3 = 'OK';
+        } else {
+          PFCMD3 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPT4value() {
+    try {
+      var outletPt4hex = hexIntgValue?.substring(98, 102);
+      int decimal = int.parse(outletPt4hex ?? "", radix: 16);
+      double outletpt4 = (decimal / 100);
+      setState(() {
+        outlet_4_actual_count_controller = outletpt4;
+        bool isWithinRange = outletpt4 >= lowerLimit && outletpt4 <= upperLimit;
+        print(
+            'Is OutletPt-4 between $lowerLimit and $upperLimit? $isWithinRange');
+        if (isWithinRange) {
+          PFCMD4 = 'OK';
+        } else {
+          PFCMD4 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {}
+  }
+
+  getPT5value() {
+    try {
+      var outletPt5hex = hexIntgValue?.substring(118, 122);
+      int decimal = int.parse(outletPt5hex ?? "", radix: 16);
+      double outletpt5 = (decimal / 100);
+      setState(() {
+        outlet_5_actual_count_controller = outletpt5;
+        bool isWithinRange = outletpt5 >= lowerLimit && outletpt5 <= upperLimit;
+        print(
+            'Is OutletPt-5 between $lowerLimit and $upperLimit? $isWithinRange');
+        if (isWithinRange) {
+          PFCMD5 = 'OK';
+        } else {
+          PFCMD5 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {}
+  }
+
+  getPT6value() {
+    try {
+      var outletPt6hex = hexIntgValue?.substring(138, 142);
+      int decimal = int.parse(outletPt6hex ?? "", radix: 16);
+      double outletpt6 = (decimal / 100);
+      setState(() {
+        outlet_6_actual_count_controller = outletpt6;
+        bool isWithinRange = outletpt6 >= lowerLimit && outletpt6 <= upperLimit;
+        print(
+            'Is OutletPt-6 between $lowerLimit and $upperLimit? $isWithinRange');
+        if (isWithinRange) {
+          PFCMD6 = 'OK';
+        } else {
+          PFCMD6 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {}
+  }
+
+  getAllPositionSensorValue() async {
+    await getPostion1Value();
+    await Future.delayed(Duration(seconds: 2));
+    await getPostion2Value();
+    await Future.delayed(Duration(seconds: 2));
+    await getPostion3Value();
+    await Future.delayed(Duration(seconds: 2));
+    await getPostion4Value();
+    await Future.delayed(Duration(seconds: 2));
+    await getPostion5Value();
+    await Future.delayed(Duration(seconds: 2));
+    await getPostion6Value();
+  }
+
+/*
+getPostion_pfcmd_1() async {
+    try {
+      String data = "${'AI 9'.toUpperCase()}\r\n";
+      _serialData.clear();
       await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 6)).whenComplete(
+      await Future.delayed(Duration(seconds: 14)).whenComplete(
         () {
+          String res = _serialData.join('');
+          int i = res.indexOf("AI");
+          var aisData = res.substring(i + 5);
+          List<String> position_range = aisData.split(' ');
+          posval1 = double.parse(position_range[0]);
+          print(posval1.toString());
+          bool isWithinRange = posval1! >= 4000 && posval1! <= 20000;
+          print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+          if (isWithinRange) {
+            pos1 = 'OK';
+          } else {
+            pos1 = 'Faulty';
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      
+      print(ex);
+    }
+  }
+  */
+  getPostion1Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 9'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 9')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            var aisData = res.substring(i + 5);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval1 = double.parse(position_range[1]);
+              print(posval1.toString());
+              bool isWithinRange = posval1! >= 3800 && posval1! <= 20000;
+              print(
+                  'Is Position Sensor 1 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos1 = 'OK';
+              } else {
+                pos1 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+      // _response = [];
+      // var pos1hex = hexIntgValue?.substring(42, 46);
+      // int decimal = int.parse(pos1hex ?? "", radix: 16);
+      // double position1value = (decimal / 100);
+      // bool isWithinRange = position1value >= 0 && position1value <= 100;
+      // print('Is pos1  between 0 and 100? $isWithinRange');
+      // setState(() {
+      //   posval1 = position1value;
+      //   if (isWithinRange) {
+      //     pos1 = 'OK';
+      //   } else {
+      //     pos1 = 'Faulty';
+      // }
+      // });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion2Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 10'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 10')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            var aisData = res.substring(i + 7);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval2 = double.parse(position_range[1]);
+              print(posval2.toString());
+              bool isWithinRange = posval2! >= 3800 && posval2! <= 20000;
+              print(
+                  'Is Position Sensor 2 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos2 = 'OK';
+              } else {
+                pos2 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion3Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 11'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 11')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval3 = double.parse(position_range[1]);
+              print(posval3.toString());
+              bool isWithinRange = posval3! >= 3800 && posval3! <= 20000;
+              print(
+                  'Is Position Sensor 3 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos3 = 'OK';
+              } else {
+                pos3 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion4Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 12'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 12')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval4 = double.parse(position_range[1]);
+              print(posval4.toString());
+              bool isWithinRange = posval4! >= 3800 && posval4! <= 20000;
+              print(
+                  'Is Position Sensor 4 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos4 = 'OK';
+              } else {
+                pos4 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion5Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 13'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 13')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval5 = double.parse(position_range[1]);
+              print(posval5.toString());
+              bool isWithinRange = posval5! >= 3800 && posval5! <= 20000;
+              print(
+                  'Is Position Sensor 5 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos5 = 'OK';
+              } else {
+                pos5 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion6Value() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'AI 14'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          if (_serialData.join(' ').toUpperCase().contains('AI 14')) {
+            String res = _serialData.join('');
+            int i = res.indexOf("AI");
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
+            List<String> position_range = aisData.split(' ');
+            setState(() {
+              posval6 = double.parse(position_range[1]);
+              print(posval6.toString());
+              bool isWithinRange = posval6! >= 3800 && posval6! <= 20000;
+              print(
+                  'Is Position Sensor 6 between 3800 and 20000? $isWithinRange');
+              if (isWithinRange) {
+                pos6 = 'OK';
+              } else {
+                pos6 = 'Faulty';
+              }
+            });
+          }
+        },
+      );
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  /*getPostion2Value() {
+    try {
+      var pos2hex = hexIntgValue?.substring(62, 66);
+      int decimal = int.parse(pos2hex ?? "", radix: 16);
+      double position2value = (decimal / 100);
+      bool isWithinRange = position2value >= 0 && position2value <= 100;
+      print('Is pos2  between 0 and 100? $isWithinRange');
+      setState(() {
+        posval2 = position2value;
+        if (isWithinRange) {
+          pos2 = 'OK';
+        } else {
+          pos2 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion3Value() {
+    try {
+      var pos3hex = hexIntgValue?.substring(82, 86);
+      int decimal = int.parse(pos3hex ?? "", radix: 16);
+      double position3value = (decimal / 100);
+      bool isWithinRange = position3value >= 0 && position3value <= 100;
+      print('Is pos3  between 0 and 100? $isWithinRange');
+      setState(() {
+        posval3 = position3value;
+        if (isWithinRange) {
+          pos3 = 'OK';
+        } else {
+          pos3 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion4Value() {
+    try {
+      var pos4hex = hexIntgValue?.substring(102, 106);
+      int decimal = int.parse(pos4hex ?? "", radix: 16);
+      double position4value = (decimal / 100);
+      bool isWithinRange = position4value >= 0 && position4value <= 100;
+      print('Is pos4  between 0 and 100? $isWithinRange');
+      setState(() {
+        posval4 = position4value;
+        if (isWithinRange) {
+          pos4 = 'OK';
+        } else {
+          pos4 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion5Value() {
+    try {
+      var pos5hex = hexIntgValue?.substring(122, 126);
+
+      int decimal = int.parse(pos5hex ?? "", radix: 16);
+      double position5value = (decimal / 100);
+      bool isWithinRange = position5value >= 0 && position5value <= 100;
+      print('Is pos5  between 0 and 100? $isWithinRange');
+      setState(() {
+        posval5 = position5value;
+        if (isWithinRange) {
+          pos5 = 'OK';
+        } else {
+          pos5 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+
+  getPostion6Value() {
+    try {
+      var pos6hex = hexIntgValue?.substring(142, 146);
+      int decimal = int.parse(pos6hex ?? "", radix: 16);
+      double position6value = (decimal / 100);
+      bool isWithinRange = position6value >= 0 && position6value <= 100;
+      print('Is pos6  between 0 and 100? $isWithinRange');
+      setState(() {
+        posval6 = position6value;
+        if (isWithinRange) {
+          pos6 = 'OK';
+        } else {
+          pos6 = 'Faulty';
+        }
+      });
+    } catch (_, ex) {
+      print(ex);
+    }
+  }
+*/
+
+  getAllINTGPacket() async {
+    await getFirmwareVersion();
+    await getBatterVoltage();
+    await getSOLARVoltage();
+    await getAlarms();
+  }
+
+  setSov1FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 1 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 1 2')) {
+            print("SOV 1 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov1FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov2FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 2 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 2 2')) {
+            print("SOV 2 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov2FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov3FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 3 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 3 2')) {
+            print("SOV 3 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov3FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov4FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 4 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 4 2')) {
+            print("SOV 4 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov4FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov5FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 5 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 5 2')) {
+            print("SOV 5 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov5FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov6FlowControl() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 6 2'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 6 2')) {
+            print("SOV 6 set to Flow Control mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Flow Control',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov6FlowControl();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov1Opneclose() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 1 1'.toUpperCase()}\r\n";
+      await _port!.write(Uint8List.fromList(data.codeUnits));
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 1 1')) {
+            print("SOV 1 set to Open/Close mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov1Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov2Opneclose() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 2 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+        // String res = _data.join('');
+        if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 2 1')) {
+          print("SOV 2 set to Open/Close mode");
+        }
+        _response = [];
+      });
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov2Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  setSov3Opneclose() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 3 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 3 1')) {
           print(_response);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-          ai1 = res.substring(i + 5, i + 10);
-          barvalue = res.substring(i + 10, i + 12);
-          aibarvalue = double.parse(barvalue) / 1000;
-          aimAvalue = double.parse(ai1);
-          print('a1val0${res.substring(i + 5, i + 10)}');
-          inlet_blink = false;
-          getAI2Value();
-        },
-      );
+          print("SOV 3 set to Open/Close mode");
+        }
+      });
       _response = [];
-    } catch (_, ex) {
-      print(ex);
+    } catch (e) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -5251,15 +5156,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                         color: Colors.grey),
                   ),
                   Text(
-                    'Devices is not able to revive data',
+                    'Devices is not able to Set Mode In Open/Close',
                     textAlign: TextAlign.center,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: TextButton(
                       onPressed: () {
-                        inlet_blink = false;
-                        getAI1Value();
+                        setSov3Opneclose();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -5277,42 +5181,350 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
           );
         },
       );
-
-      _serialdata.add('Please Try Again...');
     }
   }
 
-  getAI2Value() async {
-    String ai2;
-    String barvalue;
+  setSov4Opneclose() {
     try {
-      String data = "${'ai 2'.toUpperCase()}\r\n";
+      _response.clear();
+      _serialData.clear();
+      String data = "${'PFCMD6TYPE 4 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 4 1')) {
+          // print(_response);
+          print("SOV 4 set to Open/Close mode");
+        }
+      });
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov4Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  setSov5Opneclose() {
+    try {
+      _response.clear();
+      String data = "${'PFCMD6TYPE 5 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 5 1')) {
+          // print(_response);
+          print("SOV 5 set to Open/Close mode");
+        }
+      });
+      _response = [];
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov5Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  setSov6Opneclose() {
+    try {
+      _response.clear();
+      String data = "${'PFCMD6TYPE 6 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('PFCMD6TYPE 6 1')) {
+          // print(_response);
+          print("SOV 6 set to Open/Close mode");
+        }
+      });
+      _response = [];
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov6Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  setSov1SMode() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'SMODE 1 2 1 1'.toUpperCase()}\r\n";
       await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 6)).whenComplete(
-        () async {
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
+        () {
+          String res = _serialData.join('');
+          // print(res);
+          if (_serialData.join(' ').toUpperCase().contains('SMODE 1 2 1 1')) {
+            print("SOV 1 set to Open/Close mode");
+          }
+        },
+      );
+      _response = [];
+    } catch (_, ex) {
+      /*print(ex);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov1Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+     */
+      _serialData.add('Please Try Again...');
+    }
+  }
+
+  setSov2SMode() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'SMODE 2 2 1 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+        // String res = _data.join('');
+        if (_serialData.join(' ').toUpperCase().contains('SMODE 2 2 1 1')) {
+          print("SOV 2 set to Open/Close mode");
+        }
+        _response = [];
+      });
+    } catch (e) {
+      _serialData.add('Try Again ....');
+      /*showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SizedBox(
+              height: 260, //MediaQuery.of(context).size.height * 0.35,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image(
+                    image: AssetImage('assets/images/wrong.gif'),
+                    height: 120,
+                    width: 120,
+                  ),
+                  Text(
+                    'Command Revived Ended.',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey),
+                  ),
+                  Text(
+                    'Devices is not able to Set Mode In Open/Close',
+                    textAlign: TextAlign.center,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setSov2Opneclose();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Retry',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    */
+    }
+  }
+
+  setSov3SMode() async {
+    try {
+      _response.clear();
+      _serialData.clear();
+      String data = "${'SMODE 3 2 1 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('SMODE 3 2 1 1')) {
           print(_response);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-          ai2 = res.substring(i + 5, i + 10);
-          barvalue = res.substring(i + 10, i + 12);
-          ai2barvalue = double.parse(barvalue) / 1000;
-          ai2mAvalue = double.parse(ai2);
-          print('a2val${res.substring(i + 5, i + 10)}');
-          outlet_blink = false;
-          PFCMD1_blink = true;
-          PFCMD2_blink = true;
-          PFCMD3_blink = true;
-          PFCMD4_blink = true;
-          PFCMD5_blink = true;
-          PFCMD6_blink = true;
-
-          await getAllData();
-        },
-      );
+          print("SOV 3 set to Open/Close mode");
+        }
+      });
       _response = [];
-    } catch (_, ex) {
-      print(ex);
-      showDialog(
+    } catch (e) {
+      _serialData.add('Try Again ....');
+      /*showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -5334,15 +5546,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                         color: Colors.grey),
                   ),
                   Text(
-                    'Devices is not able to revive data',
+                    'Devices is not able to Set Mode In Open/Close',
                     textAlign: TextAlign.center,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: TextButton(
                       onPressed: () {
-                        outlet_blink = false;
-                        getAI1Value();
+                        setSov3Opneclose();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -5360,145 +5571,25 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
           );
         },
       );
-
-      _serialdata.add('Please Try Again...');
+    */
     }
   }
 
-  getPostion_pfcmd_1() {
-    var subString3;
+  setSov4SMode() {
     try {
-      subString3 = hexDecimalValue.substring(42, 46);
-      int decimal = int.parse(subString3, radix: 16);
-
-      if (btnstate == 'Open') {
-        openvalpos1 = (decimal / 100).toString();
-        open1 = false;
-      } else if (btnstate == 'Close') {
-        closevalpos1 = (decimal / 100).toString();
-        close1 = false;
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-
-  getPostion_pfcmd_2() {
-    var subString3;
-    try {
-      subString3 = hexDecimalValue.substring(62, 66);
-      int decimal = int.parse(subString3, radix: 16);
-      if (btnstate == 'Open') {
-        openvalpos2 = (decimal / 100).toString();
-        open2 = false;
-      } else if (btnstate == 'Close') {
-        closevalpos2 = (decimal / 100).toString();
-        close2 = false;
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-
-  getPostion_pfcmd_3() {
-    var subString3;
-    String postionvalue;
-    try {
-      subString3 = hexDecimalValue.substring(82, 86);
-      int decimal = int.parse(subString3, radix: 16);
-      if (btnstate == 'Open') {
-        openvalpos3 = (decimal / 100).toString();
-        open3 = false;
-      } else if (btnstate == 'Close') {
-        closevalpos3 = (decimal / 100).toString();
-        close3 = false;
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-
-  getPostion_pfcmd_4() {
-    var subString3;
-    String postionvalue;
-    try {
-      subString3 = hexDecimalValue.substring(102, 106);
-      int decimal = int.parse(subString3, radix: 16);
-      if (btnstate == 'Open') {
-        open4 = false;
-        openvalpos4 = (decimal / 100).toString();
-      } else if (btnstate == 'Close') {
-        close4 = false;
-        closevalpos4 = (decimal / 100).toString();
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-
-  getPostion_pfcmd_5() {
-    var subString3;
-    String postionvalue;
-    try {
-      subString3 = hexDecimalValue.substring(122, 126);
-      int decimal = int.parse(subString3, radix: 16);
-      if (btnstate == 'Open') {
-        openvalpos5 = (decimal / 100).toString();
-        open5 = false;
-      } else if (btnstate == 'Close') {
-        closevalpos5 = (decimal / 100).toString();
-        close5 = false;
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-
-  getPostion_pfcmd_6() {
-    var subString3;
-    String postionvalue;
-    try {
-      subString3 = hexDecimalValue.substring(142, 146);
-      int decimal = int.parse(subString3, radix: 16);
-      if (btnstate == 'Open') {
-        openvalpos6 = (decimal / 100).toString();
-        open6 = false;
-      } else if (btnstate == 'Close') {
-        closevalpos6 = (decimal / 100).toString();
-        close6 = false;
-      }
-    } catch (_, ex) {
-      print(ex);
-    }
-  }
-// outlet bar 6pfcmd
-
-  get_outlet_pt_1_actual_val() async {
-    try {
-      String data = "${'AI 3'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_1_value_controller = double.parse(position_range[0]);
-          outlet_1_actual_count_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_1_value_controller.toString());
-          print(outlet_1_actual_count_controller.toString());
-          PFCMD1_blink = false;
-        },
-      );
-      _response = [];
-    } catch (_, ex) {
-      showDialog(
+      _response.clear();
+      _serialData.clear();
+      String data = "${'SMODE 4 2 1 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('SMODE 4 2 1 1')) {
+          // print(_response);
+          print("SOV 4 set to Open/Close mode");
+        }
+      });
+    } catch (e) {
+      _serialData.add('Try Again ....');
+      /*showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -5520,16 +5611,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                         color: Colors.grey),
                   ),
                   Text(
-                    'Devices is not able to revive data',
+                    'Devices is not able to Set Mode In Open/Close',
                     textAlign: TextAlign.center,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: TextButton(
                       onPressed: () {
-                        PFCMD1_blink = true;
-                        get_outlet_pt_1_actual_val();
-
+                        setSov4Opneclose();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -5547,37 +5636,25 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
           );
         },
       );
-
-      print(ex);
+    */
     }
   }
 
-  get_outlet_pt_2_actual_val() async {
+  setSov5SMode() {
     try {
-      String data = "${'AI 4'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_2_value_after_controller = double.parse(position_range[0]);
-          outlet_2_actual_count_after_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_2_value_after_controller.toString());
-          print(outlet_2_actual_count_after_controller.toString());
-          PFCMD2_blink = false;
-        },
-      );
+      _response.clear();
+      String data = "${'SMODE 5 2 1 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('SMODE 5 2 1 1')) {
+          // print(_response);
+          print("SOV 5 set to Open/Close mode");
+        }
+      });
       _response = [];
-    } catch (_, ex) {
-      showDialog(
+    } catch (e) {
+      _serialData.add('Try Again ....');
+      /*showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -5599,15 +5676,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                         color: Colors.grey),
                   ),
                   Text(
-                    'Devices is not able to revive data',
+                    'Devices is not able to Set Mode In Open/Close',
                     textAlign: TextAlign.center,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: TextButton(
                       onPressed: () {
-                        PFCMD2_blink = true;
-                        get_outlet_pt_2_actual_val();
+                        setSov5Opneclose();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -5625,38 +5701,25 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
           );
         },
       );
-
-      print(ex);
-      _serialData.add('Please Try Again...');
+    */
     }
   }
 
-  get_outlet_pt_3_actual_val() async {
+  setSov6SMode() {
     try {
-      String data = "${'AI 5'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_3_value_controller = double.parse(position_range[0]);
-          outlet_3_actual_count_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_3_value_controller.toString());
-          print(outlet_3_actual_count_controller.toString());
-          PFCMD3_blink = false;
-        },
-      );
+      _response.clear();
+      String data = "${'SMODE 6 2 1 1'.toUpperCase()}\r\n";
+      _port!.write(Uint8List.fromList(data.codeUnits));
+      new Future.delayed(Duration(seconds: 10)).whenComplete(() {
+        if (_serialData.join(' ').toUpperCase().contains('SMODE 6 2 1 1')) {
+          // print(_response);
+          print("SOV 6 set to Open/Close mode");
+        }
+      });
       _response = [];
-    } catch (_, ex) {
-      showDialog(
+    } catch (e) {
+      _serialData.add('Try Again ....');
+      /*showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -5678,15 +5741,14 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                         color: Colors.grey),
                   ),
                   Text(
-                    'Devices is not able to revive data',
+                    'Devices is not able to Set Mode In Open/Close',
                     textAlign: TextAlign.center,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: TextButton(
                       onPressed: () {
-                        PFCMD3_blink = true;
-                        get_outlet_pt_3_actual_val();
+                        setSov6Opneclose();
                         Navigator.pop(context);
                       },
                       child: Text(
@@ -5704,262 +5766,8 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
           );
         },
       );
-
-      print(ex);
-      _serialData.add('Please Try Again...');
+    */
     }
-  }
-
-  get_outlet_pt_4_actual_val() async {
-    try {
-      String data = "${'AI 6'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_4_value_controller = double.parse(position_range[0]);
-          outlet_4_actual_count_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_4_value_controller.toString());
-          print(outlet_4_actual_count_controller.toString());
-          PFCMD4_blink = false;
-        },
-      );
-      _response = [];
-    } catch (_, ex) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: SizedBox(
-              height: 260, //MediaQuery.of(context).size.height * 0.35,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/wrong.gif'),
-                    height: 120,
-                    width: 120,
-                  ),
-                  Text(
-                    'Command Revived Ended.',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey),
-                  ),
-                  Text(
-                    'Devices is not able to revive data',
-                    textAlign: TextAlign.center,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: TextButton(
-                      onPressed: () {
-                        PFCMD4_blink = true;
-                        get_outlet_pt_4_actual_val();
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Retry',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      print(ex);
-      _serialData.add('Please Try Again...');
-    }
-  }
-
-  get_outlet_pt_5_actual_val() async {
-    try {
-      String data = "${'AI 7'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_5_value_controller = double.parse(position_range[0]);
-          outlet_5_actual_count_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_5_value_controller.toString());
-          print(outlet_5_actual_count_controller.toString());
-          PFCMD5_blink = false;
-        },
-      );
-      _response = [];
-    } catch (_, ex) {
-      print(ex);
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: SizedBox(
-              height: 260, //MediaQuery.of(context).size.height * 0.35,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/wrong.gif'),
-                    height: 120,
-                    width: 120,
-                  ),
-                  Text(
-                    'Command Revived Ended.',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey),
-                  ),
-                  Text(
-                    'Devices is not able to revive data',
-                    textAlign: TextAlign.center,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: TextButton(
-                      onPressed: () {
-                        PFCMD5_blink = true;
-                        get_outlet_pt_5_actual_val();
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Retry',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      _serialData.add('Please Try Again...');
-    }
-  }
-
-  get_outlet_pt_6_actual_val() async {
-    try {
-      String data = "${'AI 8'.toUpperCase()}\r\n";
-      _data.clear();
-      await _port!.write(Uint8List.fromList(data.codeUnits));
-      await Future.delayed(Duration(seconds: 14)).whenComplete(
-        () {
-          print(_data);
-          String res = _data.join('');
-          int i = res.indexOf("AI");
-
-          var aisData = res.substring(i + 5);
-          List<String> position_range = aisData.split(' ');
-          print(position_range);
-
-          outlet_6_value_controller = double.parse(position_range[0]);
-          outlet_6_actual_count_controller = double.parse(
-              position_range[1].trim().split('>').first.toString());
-          print(outlet_6_value_controller.toString());
-          print(outlet_6_actual_count_controller.toString());
-          PFCMD6_blink = false;
-        },
-      );
-      _response = [];
-    } catch (_, ex) {
-      print(ex);
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: SizedBox(
-              height: 260, //MediaQuery.of(context).size.height * 0.35,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/wrong.gif'),
-                    height: 120,
-                    width: 120,
-                  ),
-                  Text(
-                    'Command Revived Ended.',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey),
-                  ),
-                  Text(
-                    'Devices is not able to revive data',
-                    textAlign: TextAlign.center,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25.0),
-                    child: TextButton(
-                      onPressed: () {
-                        PFCMD6_blink = true;
-                        get_outlet_pt_6_actual_val();
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'Retry',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-
-      _serialData.add('Please Try Again...');
-    }
-  }
-
-// outlet get all func
-  getAllData() async {
-    await get_outlet_pt_1_actual_val();
-
-    await get_outlet_pt_2_actual_val();
-
-    await get_outlet_pt_3_actual_val();
-
-    await get_outlet_pt_4_actual_val();
-
-    await get_outlet_pt_5_actual_val();
-
-    await get_outlet_pt_6_actual_val();
   }
 
   void showSaveDialog(BuildContext context) {
@@ -5973,15 +5781,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
             children: [
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'Device Name',
-                ),
-                onChanged: (value) {
-                  deviceName = value;
-                },
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Site Name',
+                  labelText: 'Project Name',
                 ),
                 onChanged: (value) {
                   siteName = value;
@@ -6007,7 +5807,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
             TextButton(
               child: Text('Submit'),
               onPressed: () {
-                if (deviceName.isEmpty || siteName.isEmpty || nodeNo.isEmpty) {
+                if (siteName.isEmpty || nodeNo.isEmpty) {
                   // Display an error message if any field is empty
                   showDialog(
                     context: context,
@@ -6039,1178 +5839,422 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
   }
 
   void _submitForm() {
-    // Generate PDF
-
-    if (controllerType!.contains('BOCOM1')) {
-      final pdfWidgets.Document pdf = pdfWidgets.Document();
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                pdfWidgets.Center(
-                  child: pdfWidgets.Text(
-                    'Auto Commissinning Report',
-                    style: pdfWidgets.TextStyle(
-                        fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
-                  ),
+    final pdfWidgets.Document pdf = pdfWidgets.Document();
+    pdf.addPage(pdfWidgets.Page(build: (context) {
+      return pdfWidgets.Container(
+        child: pdfWidgets.Column(
+            mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+            crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+            children: [
+              pdfWidgets.Center(
+                child: pdfWidgets.Text(
+                  'Auto Dry Commissinning Report',
+                  style: pdfWidgets.TextStyle(
+                      fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
                 ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  child: pdfWidgets.Column(
-                    children: [
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Device Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(deviceName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Site Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(siteName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Node No :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(nodeNo)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 5),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                lora_comm,
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Battery Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$batteryVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Solar Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$solarVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 1 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door1',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 2 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door2',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aimAvalue.toString()} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aibarvalue.toString()} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(InletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2mAvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2barvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Solenoid Testing',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                      color: PdfColors.black,
-                      width: 1,
-                      style: pdfWidgets.BorderStyle.solid,
-                    ),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Command',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${postionvalue.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${postionvalue.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Row(
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Container(
+                child: pdfWidgets.Column(
                   children: [
-                    pdfWidgets.Text('Done By:  ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(username!)
+                    pdfWidgets.SizedBox(height: 10),
+                    pdfWidgets.Row(
+                      children: [
+                        pdfWidgets.Text('Site Name :',
+                            style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold)),
+                        pdfWidgets.SizedBox(width: 20),
+                        pdfWidgets.Text(siteName)
+                      ],
+                    ),
+                    pdfWidgets.SizedBox(height: 10),
+                    pdfWidgets.Row(
+                      children: [
+                        pdfWidgets.Text('Node No :',
+                            style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold)),
+                        pdfWidgets.SizedBox(width: 20),
+                        pdfWidgets.Text(nodeNo)
+                      ],
+                    ),
+                    pdfWidgets.SizedBox(height: 5),
                   ],
                 ),
-                pdfWidgets.SizedBox(height: 10),
-                pdfWidgets.Row(
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Container(
+                width: 200,
+                child: pdfWidgets.Column(
+                  mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
                   children: [
-                    pdfWidgets.Text('Date: ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(Cdate!)
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'General Checks ',
+                              style: pdfWidgets.TextStyle(
+                                fontSize: 22,
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Firmware Version :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '$firmwareversion',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Mac ID :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              macId,
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Battery Voltage :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '$batteryVoltage V',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Solar Voltage :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '$solarVoltage V',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            // color: Colors.blue,
+                            child: pdfWidgets.Text(
+                              'Door 1 :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              Door1 ?? '',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            // color: Colors.blue,
+                            child: pdfWidgets.Text(
+                              'Door 2 :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              Door2 ?? '',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ]),
-        );
-      }));
-      savePDF(pdf, context);
-    } else if (controllerType!.contains('BOCOM6')) {
-      final pdfWidgets.Document pdf = pdfWidgets.Document();
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                pdfWidgets.Center(
-                  child: pdfWidgets.Text(
-                    'Auto Commissinning Report',
-                    style: pdfWidgets.TextStyle(
-                        fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  child: pdfWidgets.Column(
-                    children: [
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Device Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(deviceName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Site Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(siteName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Node No :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(nodeNo)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 5),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                lora_comm,
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Battery Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$batteryVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Solar Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$solarVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 1 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door1',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 2 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door2',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
+              ),
+              pdfWidgets.Container(
+                width: 200,
+                child: pdfWidgets.Column(
+                  mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                  children: [
+                    pdfWidgets.Padding(
                       padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Inlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Lora Communication Check',
+                              style: pdfWidgets.TextStyle(
+                                fontSize: 22,
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Lora Communication :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              lora_comm,
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  decoration: pdfWidgets.BoxDecoration(
+                      borderRadius: pdfWidgets.BorderRadius.circular(5)),
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Inlet PT Valve Test',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                      width: 1, color: PdfColors.black),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('PT Name',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Before Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aimAvalue.toString()} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aibarvalue.toString()} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(InletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('After Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2mAvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2barvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Outlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
                         ),
-                      ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Pressure',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Technician Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                                '${pfcmcdType == 1 ? "Filter Inlet PT" : "Inlet PT"}'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${filterInlet.toString()} bar',
+                            ),
+                          ),
+                        ),
+                        /*pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${aibarvalue.toString()} bar',
+                            ),
+                          ),
+                        ),*/
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(InletButton),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                                "${pfcmcdType == 1 ? 'Flter Outlet PT' : 'Outlet PT'}"),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${filterOutlet.toString()} bar',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(OutletButton),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 1'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_1_value_controller.toString()} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_1_actual_count_controller.toString()} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(InletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 2'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_2_value_after_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_2_actual_count_after_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 3'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_3_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_3_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 4'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_4_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_4_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 5'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_5_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_5_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 6'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_6_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_6_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                /* pdfWidgets.Padding(
+              ),
+              /* pdfWidgets.Padding(
                   padding: const pdfWidgets.EdgeInsets.all(8.0),
                   child: pdfWidgets.Container(
                     width: double.infinity,
@@ -7800,7 +6844,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                     pdfWidgets.Text('Done By:  ',
                         style: pdfWidgets.TextStyle(
                             fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(username!)
+                    pdfWidgets.Text(username?? "")
                   ],
                 ),
                 pdfWidgets.SizedBox(height: 10),
@@ -7809,355 +6853,20 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                     pdfWidgets.Text('Date: ',
                         style: pdfWidgets.TextStyle(
                             fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(Cdate!)
+                    pdfWidgets.Text(Cdate?? "")
                   ],
                 ),
              */
-              ]),
-        );
-      }));
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                /* pdfWidgets.Center(
-                  child: pdfWidgets.Text(
-                    'Auto Commissinning Report',
-                    style: pdfWidgets.TextStyle(
-                        fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  child: pdfWidgets.Column(
-                    children: [
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Device Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(deviceName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Site Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(siteName)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Node No :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(nodeNo)
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 5),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                lora_comm,
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Battery Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$batteryVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Solar Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$solarVoltage V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 1 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door1',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 2 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '$Door2',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Inlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Before Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aimAvalue.toString()} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${aibarvalue.toString()} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(InletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('After Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2mAvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${ai2barvalue.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+            ]),
+      );
+    }));
+    pdf.addPage(pdfWidgets.Page(build: (context) {
+      return pdfWidgets.Container(
+        child: pdfWidgets.Column(
+            mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+            crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+            children: [
+              if (pfcmcdType == 1)
                 pdfWidgets.Padding(
                   padding: const pdfWidgets.EdgeInsets.all(8.0),
                   child: pdfWidgets.Container(
@@ -8176,6 +6885,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                     ),
                   ),
                 ),
+              if (pfcmcdType == 1)
                 pdfWidgets.Padding(
                   padding: const pdfWidgets.EdgeInsets.all(8),
                   child: pdfWidgets.Table(
@@ -8190,16 +6900,6 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
                                   style: pdfWidgets.TextStyle(
                                       fontWeight: pdfWidgets.FontWeight.bold)),
                             ),
@@ -8242,16 +6942,6 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_1_value_controller.toString()} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
                                 '${outlet_1_actual_count_controller.toString()} bar',
                               ),
                             ),
@@ -8261,7 +6951,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(InletButton),
+                              child: pdfWidgets.Text(PFCMD1),
                             ),
                           ),
                         ],
@@ -8282,7 +6972,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_2_value_after_controller?.toString() ?? ''} mA',
+                                '${outlet_2_actual_count_after_controller?.toString() ?? ''} bar',
                               ),
                             ),
                           ),
@@ -8291,17 +6981,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_2_actual_count_after_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
+                              child: pdfWidgets.Text(PFCMD2.toString()),
                             ),
                           ),
                         ],
@@ -8322,7 +7002,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_3_value_controller?.toString() ?? ''} mA',
+                                '${outlet_3_actual_count_controller?.toString() ?? ''} bar',
                               ),
                             ),
                           ),
@@ -8331,17 +7011,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_3_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
+                              child: pdfWidgets.Text(PFCMD3.toString()),
                             ),
                           ),
                         ],
@@ -8362,7 +7032,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_4_value_controller?.toString() ?? ''} mA',
+                                '${outlet_4_actual_count_controller?.toString() ?? ''} bar',
                               ),
                             ),
                           ),
@@ -8371,17 +7041,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_4_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
+                              child: pdfWidgets.Text(PFCMD4.toString()),
                             ),
                           ),
                         ],
@@ -8402,7 +7062,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_5_value_controller?.toString() ?? ''} mA',
+                                '${outlet_5_actual_count_controller?.toString() ?? ''} bar',
                               ),
                             ),
                           ),
@@ -8411,17 +7071,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_5_value_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
+                              child: pdfWidgets.Text(PFCMD5.toString()),
                             ),
                           ),
                         ],
@@ -8442,7 +7092,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
                               child: pdfWidgets.Text(
-                                '${outlet_6_value_controller?.toString() ?? ''} mA',
+                                '${outlet_6_actual_count_controller?.toString() ?? ''} bar',
                               ),
                             ),
                           ),
@@ -8451,17 +7101,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             child: pdfWidgets.Container(
                               height: 20,
                               alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${outlet_6_actual_count_controller?.toString() ?? ''} mA',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(OutletButton),
+                              child: pdfWidgets.Text(PFCMD6.toString()),
                             ),
                           ),
                         ],
@@ -8469,640 +7109,524 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                     ],
                   ),
                 ),
-                */
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Solenoid Testing',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  decoration: pdfWidgets.BoxDecoration(
+                      borderRadius: pdfWidgets.BorderRadius.circular(5)),
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Position Sensor Test',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                      color: PdfColors.black,
-                      width: 1,
-                      style: pdfWidgets.BorderStyle.solid,
-                    ),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Command',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Output',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 1
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos1.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos1.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 2
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos2.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos2.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      // PFCMD 3
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos3.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos3.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 4
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos4.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos4.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 5
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos5.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos5.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      // PFCMD 6
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'OPEN',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${openvalpos6.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(OpenBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'CLOSE',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              width: 50,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  '${closevalpos6.toString()} %',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  width: 50,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(CloseBtn)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Done By:  ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(username!)
-                  ],
-                ),
-                pdfWidgets.SizedBox(height: 10),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Date: ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(Cdate!)
-                  ],
-                ),
-              ]),
-        );
-      }));
-
-      savePDF(pdf, context);
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred while saving the PDF.'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
               ),
-            ],
-          );
-        },
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                      width: 1, color: PdfColors.black),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Value',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 1'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval1.toString()} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos1 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 2'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval2?.toString() ?? ''} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos2 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 3'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval3?.toString() ?? ''} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos3 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 4'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval4?.toString() ?? ''} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos4 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 5'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval5?.toString() ?? ''} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos5 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 6'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${posval6?.toString() ?? ''} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(pos6 ?? ''),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Solenoid Testing',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                    color: PdfColors.black,
+                    width: 1,
+                    style: pdfWidgets.BorderStyle.solid,
+                  ),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Solenoid',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Technician Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    //PFCMD 1
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 1',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov1 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 2',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov2 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // PFCMD 3
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 3',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov3 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 4',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov4 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 5',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov5 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            width: 50,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 6',
+                              ),
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                width: 50,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(sov6 ?? '')),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Row(
+                children: [
+                  pdfWidgets.Text('Done By:  ',
+                      style: pdfWidgets.TextStyle(
+                          fontWeight: pdfWidgets.FontWeight.bold)),
+                  pdfWidgets.Text(username ?? "")
+                ],
+              ),
+              pdfWidgets.SizedBox(height: 10),
+              pdfWidgets.Row(
+                children: [
+                  pdfWidgets.Text('Date: ',
+                      style: pdfWidgets.TextStyle(
+                          fontWeight: pdfWidgets.FontWeight.bold)),
+                  pdfWidgets.Text(Cdate ?? "")
+                ],
+              ),
+            ]),
       );
-    }
+    }));
+    savePDF(pdf, context);
+
     // Save PDF to file
   }
 
   String? username;
   getusername() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    username = preferences.getString("firstname")!;
+    final sharePref = await SharedPreferences.getInstance();
+    var user = sharePref.getString(Keys.user.name);
+    if (user != null) {
+      final userJson = json.decode(user);
+      var newUser = LoginMasterModel.fromJson(userJson);
+      // return newUser;
+      username = newUser.fName;
+    }
   }
 
   String? Cdate;
@@ -9113,20 +7637,16 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     Cdate = formatted;
   }
 
-  // void savePDF(pdfWidgets.Document pdf) async {
-  //   String downloadPath = '/storage/emulated/0/Download';
-  //   String pdfName = '${deviceName}-${siteName}-${nodeNo}.pdf';
-  //   File file = File('$downloadPath/$pdfName');
-  //   await file.writeAsBytes(await pdf.save());
-  //   print('PDF saved successfully');
-  // }
-
   void savePDF(pdfWidgets.Document pdf, BuildContext context) async {
-    String downloadPath = '/storage/emulated/0/Download';
-    String pdfName = '${deviceName}-${siteName}-${nodeNo}.pdf';
-    File file = File('$downloadPath/$pdfName');
+    // String downloadPath = '/storage/emulated/0/Download';
+    final Directory? downloadPath = await getDownloadsDirectory();
+    String pdfName = 'AutoDry ${nodeNo.trim()}-${siteName.trim()}.pdf';
+    File file = File('${downloadPath?.path}/$pdfName');
     try {
       await file.writeAsBytes(await pdf.save());
+      setState(() {
+        filePath = file.path.replaceAll('/storage/emulated/0/', '');
+      });
       print('PDF saved successfully');
       showDialog(
         context: context,
@@ -9138,6 +7658,9 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
               TextButton(
                 child: Text('OK'),
                 onPressed: () {
+                  setState(() {
+                    isSaved = true;
+                  });
                   Navigator.of(context).pop();
                 },
               ),
@@ -9167,99 +7690,20 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
     }
   }
 
-  Future<void> _startTask(int sec) async {
-    // Simulating a 15-second task that updates progress every second
-    for (int i = 1; i <= sec; i++) {
-      await Future.delayed(Duration(seconds: 1));
-      setState(() {
-        _progress = i / sec; // Update the progress based on the task completion
-      });
-    }
-  }
-
-  getpop_loader(context) {
-    return showDialog(
-      barrierDismissible: false,
-      useSafeArea: true,
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: AnimatedContainer(
-          duration:
-              Duration(milliseconds: 500), // Set the desired animation duration
-          curve: Curves.easeInOut, // Set the desired animation curve
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-
-          child: SizedBox(
-            height: 260,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      height: 130,
-                      width: 130,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 10,
-                        value: _progress,
-                        backgroundColor: Colors.grey,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                      ),
-                    ),
-                    Text(
-                      '${(_progress * 100).toStringAsFixed(1)}%',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 25,
-                ),
-                Text(
-                  'Sending Commands...',
-                  style: TextStyle(
-                      color: Colors.black,
-                      // fontWeight: FontWeight.bold,
-                      fontSize: 19),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   getSiteName() async {
     try {
-      _progress = 0.0;
-      _startTask(30);
-      getpop_loader(context);
-      Future.delayed(Duration(milliseconds: 30400), () {
-        Navigator.pop(context); //pop dialog
-      });
-
-      await Future.delayed(Duration(seconds: 9)).whenComplete(
+      await Future.delayed(Duration(seconds: 5)).whenComplete(
         () async {
-          String res = _data.join('');
+          String res = _serialData.join('');
           int i = res.indexOf("SI");
           controllerType = res.substring(i + 5, i + 13);
           if (controllerType!.toLowerCase().contains('boc')) {
             setState(() {
               controllerType = res.substring(i + 5, i + 13);
             });
-            deviceType = _data.join();
-            print('Controller Type :${controllerType!}');
-            await setDatetime().then((_) {
-              getINTG();
-            });
+            deviceType = _serialData.join();
+            print('Controller Type :${controllerType ?? ""}');
+            getMID();
           } else {
             showDialog(
               context: context,
@@ -9293,7 +7737,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                               Navigator.pop(context);
                               String data = "${'SINM'.toUpperCase()}\r\n";
                               _response.clear();
-                              _data.clear();
+                              _serialData.clear();
                               hexDecimalValue = '';
                               await _port!
                                   .write(Uint8List.fromList(data.codeUnits));

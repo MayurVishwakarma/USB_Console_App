@@ -2,25 +2,30 @@
 
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_usb2/Screens/AutoCommisitoning/AutoCommistoning.dart';
+import 'package:flutter_application_usb2/Screens/AutoCommisitoning/RMS_Auto_Comm.dart';
+import 'package:flutter_application_usb2/Screens/AutoCommisitoning/auto_commission_screen_bluetooth.dart';
+import 'package:flutter_application_usb2/Screens/Bluetooth/bluetooth_screen.dart';
 import 'package:flutter_application_usb2/Screens/FactorySetting/FactorySetting.dart';
-import 'package:flutter_application_usb2/Screens/HardwareConfiguation/HardwareConfiguation.dart';
 import 'package:flutter_application_usb2/Screens/Login/LoginScreen.dart';
 import 'package:flutter_application_usb2/Screens/ProcessMonitoring/ProcessMonitering.dart';
+import 'package:flutter_application_usb2/Screens/ProcessMonitoring/process_moniter_screen_bt.dart';
+import 'package:flutter_application_usb2/Screens/rms/rms_bluetooth.dart';
+import 'package:flutter_application_usb2/Widget/custom_stack_widget.dart';
+import 'package:flutter_application_usb2/Widget/dialog.dart';
+import 'package:flutter_application_usb2/core/utils/appColors..dart';
 import 'package:flutter_application_usb2/models/pdfbase64code.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:usb_serial/transaction.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../FirmwareUpdate/test.dart';
-import '../LocalOperation/LocalOperation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 
 class DashboardScreen extends StatefulWidget {
+  static const routeName = "/dashboard";
   DashboardScreen({Key? key}) : super(key: key);
 
   @override
@@ -28,6 +33,214 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Dashboard'),
+          bottom: TabBar(indicatorColor: AppColors.primaryColor, tabs: [
+            Text(
+              "Bluetooth",
+              style: TextStyle(fontSize: 20),
+            ),
+            Text(
+              "USB",
+              style: TextStyle(fontSize: 20),
+            )
+          ]),
+          actions: [
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: IconButton(
+                  icon: Icon(Icons.info),
+                  onPressed: () {
+                    base64ToPdf(PdfConstant.base64pdf, 'Bluetooth Manual');
+                  }),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GestureDetector(
+                child: Image(
+                  image: AssetImage('assets/images/turn-off.png'),
+                  height: 25,
+                ),
+                onTap: () async {
+                  SharedPreferences preferences =
+                      await SharedPreferences.getInstance();
+                  await preferences.clear();
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    LoginPageScreen.routeName,
+                    (Route<dynamic> route) => false,
+                  );
+                },
+              ),
+            )
+          ],
+        ),
+        body: TabBarView(
+          children: [BluetoothWidget(), UsbWidget()],
+        ),
+      ),
+    );
+  }
+
+  getpop(context) {
+    return showDialog(
+      barrierDismissible: false,
+      useSafeArea: true,
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AnimatedContainer(
+          duration:
+              Duration(milliseconds: 500), // Set the desired animation duration
+          curve: Curves.easeInOut, // Set the desired animation curve
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+          ),
+
+          child: SizedBox(
+            height: 260,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image(
+                    image: AssetImage('assets/images/Iphone-spinner-2.gif'),
+                    height: 80,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Sending Command...',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  base64ToPdf(String base64String, String fileName) async {
+    var bytes = base64Decode(base64String);
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/$fileName.pdf");
+    await file.writeAsBytes(bytes.buffer.asUint8List());
+    await OpenFilex.open("${output.path}/$fileName.pdf");
+  }
+}
+
+class BluetoothWidget extends StatelessWidget {
+  const BluetoothWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 50,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CustomStackWidget(
+                  onTap: () {
+                    Navigator.pushNamed(context, BluetoothScreen.routeName);
+                  },
+                  title: "Bluetooth",
+                  image: "assets/images/bluetooth.png",
+                ),
+                CustomStackWidget(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, ProcessMoniterScreenBT.routeName);
+                  },
+                  title: "Process\nMonitoring",
+                  image: "assets/images/monitoring.png",
+                )
+              ],
+            ),
+            /*const SizedBox(
+              height: 16,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CustomStackWidget(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, AutoDryCommissionScreenBluetooth.routeName);
+                  },
+                  title: "Auto \nCommission",
+                  image: "assets/images/exam.png",
+                ),
+                SizedBox(
+                  height: 200,
+                  width: (MediaQuery.of(context).size.width > 600)
+                      ? 200
+                      : MediaQuery.of(context).size.width / 2.2,
+                )
+              ],
+            ),
+           */
+            const SizedBox(
+              height: 16,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CustomStackWidget(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, AutoDryCommissionScreenBluetooth.routeName);
+                  },
+                  title: "OMS Auto \nCommission",
+                  image: "assets/images/exam.png",
+                ),
+                CustomStackWidget(
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, RMSAutoDryCommissionScreenBluetooth.routeName);
+                  },
+                  title: "RMS Auto \nCommission",
+                  image: "assets/images/exam.png",
+                ),
+                // SizedBox(
+                //   height: 200,
+                //   width: (MediaQuery.of(context).size.width > 600)
+                //       ? 200
+                //       : MediaQuery.of(context).size.width / 2.2,
+                // )
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class UsbWidget extends StatefulWidget {
+  const UsbWidget({super.key});
+
+  @override
+  State<UsbWidget> createState() => _UsbWidgetState();
+}
+
+class _UsbWidgetState extends State<UsbWidget> {
   UsbPort? _port;
   String _status = "Idle";
   List<UsbDevice> _devices = [];
@@ -81,970 +294,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+
     UsbSerial.usbEventStream?.listen((UsbEvent event) {
       _getPorts();
     });
     _getPorts();
   }
 
-  /*@override
+  @override
   void dispose() {
     super.dispose();
     _connectTo(null);
   }
-*/
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard'),
-        actions: [
-          Padding(
-            padding: EdgeInsets.all(8),
-            child: IconButton(
-                icon: Icon(Icons.info),
-                onPressed: () {
-                  base64ToPdf(PdfConstant.base64pdf, 'Bluetooth Manual');
-                }),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              child: Image(
-                image: AssetImage('assets/images/turn-off.png'),
-                height: 25,
-              ),
-              onTap: () async {
-                SharedPreferences preferences =
-                    await SharedPreferences.getInstance();
-                await preferences.clear();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          )
-        ],
-      ),
-      body: Container(
-          child: GridView.count(
-        crossAxisCount: 2, // Number of columns in the grid
-        crossAxisSpacing: 10, // Spacing between columns
-        mainAxisSpacing: 10, // Spacing between rows
-        padding: EdgeInsets.all(10), // Padding around the grid
+    return SingleChildScrollView(
+      child: Container(
+          child: Column(
         children: [
-          //Bluetooth Card
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  230, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/work-in-progress.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Work In Progress',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  230, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/work-in-progress.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Work In Progress',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/bluetooth.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Bluetooth Pairing',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          const SizedBox(
+            height: 50,
           ),
-
-          //Process monitoring
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ProcessMonitoringScreen()),
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/monitoring.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Process Monitoring',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              CustomStackWidget(
+                image: "assets/images/monitoring.png",
+                title: "Process Monitoring",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProcessMonitoringScreen()),
+                        );
+                      },
               ),
-            ),
-          ),
-
-          //Local Operation
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // actions: [
-
-                            // ],
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                local_op_new()), //LocalOperation_SinglePFCMD
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/gear.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Local Operation',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+              CustomStackWidget(
+                image: "assets/images/manufacturing.png",
+                title: "Factory Setting",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => FactorySetting()),
+                        );
+                      },
               ),
-            ),
+            ],
           ),
-
-          //Hardware Configuration
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // actions: [
-
-                            // ],
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => Hardware_configration()),
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/cogwheel.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        'Hardware Configuration',
-                        textScaleFactor: 1,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
+          const SizedBox(
+            height: 16,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              CustomStackWidget(
+                image: "assets/images/exam.png",
+                title: "OMS Auto Commission",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => AutoCommistioningScreen()),
+                        );
+                      },
               ),
-            ),
-          ),
-
-          //Auto Commissoion
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      // showDialog(
-                      //   context: context,
-                      //   builder: (BuildContext context) {
-                      //     return AlertDialog(
-                      //       content: SizedBox(
-                      //         height:
-                      //             230, //MediaQuery.of(context).size.height * 0.35,
-                      //         child: Column(
-                      //           mainAxisAlignment: MainAxisAlignment.center,
-                      //           children: [
-                      //             Image(
-                      //               image: AssetImage(
-                      //                   'assets/images/work-in-progress.gif'),
-                      //               height: 120,
-                      //               width: 120,
-                      //             ),
-                      //             Text(
-                      //               'Work In Progress',
-                      //               style: TextStyle(
-                      //                   fontSize: 18,
-                      //                   fontWeight: FontWeight.bold,
-                      //                   color: Colors.grey),
-                      //             ),
-                      //             Padding(
-                      //               padding: const EdgeInsets.only(top: 25.0),
-                      //               child: TextButton(
-                      //                 onPressed: () {
-                      //                   Navigator.of(context).pop();
-                      //                 },
-                      //                 child: Text(
-                      //                   'OK',
-                      //                   style: TextStyle(
-                      //                       fontSize: 16,
-                      //                       fontWeight: FontWeight.bold),
-                      //                 ),
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //       // actions: [
-
-                      //       // ],
-                      //     );
-                      //   },
-                      // );
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => AutoCommistioningScreen()),
-                      );
-                      /*showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  230, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/work-in-progress.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Work In Progress',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // actions: [
-
-                            // ],
-                          );
-                        },
-                      );
-                    */
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/exam.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Auto Commission',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+              CustomStackWidget(
+                image: "assets/images/exam.png",
+                title: "RMS Auto Commission",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RMSAutoCommScreen()),
+                        );
+                      },
               ),
-            ),
-          ),
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: /* _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            */
-
-                  // actions: [
-
-                  // ],
-
-                  //       );
-                  //     },
-                  //   );
-                  // }
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FactorySetting()),
-                );
-              },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/manufacturing.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Factory Setting',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  230, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Work In Progress',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  230, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/work-in-progress.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Work In Progress',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/update.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Firmware update',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          //Firmware Update
-          /*Card(
-            elevation: 5,
-            child: GestureDetector(
-              onTap: _port == null
-                  ? () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            content: SizedBox(
-                              height:
-                                  260, //MediaQuery.of(context).size.height * 0.35,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image(
-                                    image: AssetImage(
-                                        'assets/images/usb-cable.gif'),
-                                    height: 120,
-                                    width: 120,
-                                  ),
-                                  Text(
-                                    'Device Not Connected',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey),
-                                  ),
-                                  Text(
-                                    'Please connect USB Console device to proceed.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 25.0),
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // actions: [
-
-                            // ],
-                          );
-                        },
-                      );
-                    }
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => UsbConsoleScreen_test()),
-                      );
-                    },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image(
-                        image: AssetImage('assets/images/update.png'),
-                        height: 80,
-                      ),
-                    ),
-                    Text(
-                      'Firmware Update',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-*/
-          // Add more containers for additional grid items
+            ],
+          )
         ],
       )),
     );
-  }
-
-  getpop(context) {
-    return showDialog(
-      barrierDismissible: false,
-      useSafeArea: true,
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: AnimatedContainer(
-          duration:
-              Duration(milliseconds: 500), // Set the desired animation duration
-          curve: Curves.easeInOut, // Set the desired animation curve
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-
-          child: SizedBox(
-            height: 260,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Image(
-                    image: AssetImage('assets/images/Iphone-spinner-2.gif'),
-                    height: 80,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Sending Command...',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  base64ToPdf(String base64String, String fileName) async {
-    var bytes = base64Decode(base64String);
-    final output = await getTemporaryDirectory();
-    final file = File("${output.path}/$fileName.pdf");
-    await file.writeAsBytes(bytes.buffer.asUint8List());
-    await OpenFilex.open("${output.path}/$fileName.pdf");
   }
 }

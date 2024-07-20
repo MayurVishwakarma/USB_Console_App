@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, unnecessary_null_comparison, unused_local_variable, prefer_typing_uninitialized_variables, non_constant_identifier_names, unused_catch_stack, unused_field, prefer_final_fields, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings, use_build_context_synchronously, unnecessary_new, sized_box_for_whitespace, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, file_names, unused_import, avoid_print
+// ignore_for_file: prefer_const_constructors, unnecessary_null_comparison, unused_local_variable, prefer_typing_uninitialized_variables, non_constant_identifier_names, unused_catch_stack, unused_field, prefer_final_fields, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings, use_build_context_synchronously, unnecessary_new, sized_box_for_whitespace, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, file_names, unused_import, avoid_print, deprecated_member_use, curly_braces_in_flow_control_structures, no_leading_underscores_for_local_identifiers, prefer_if_null_operators, camel_case_types
 
 import 'dart:async';
 import 'dart:typed_data';
@@ -470,14 +470,13 @@ class _local_op_newState extends State<local_op_new> {
                   ),
                 ),
               ElevatedButton(
-                child: Text("SINM"),
                 onPressed: _port == null
                     ? null
                     : () async {
                         if (_port == null) {
                           return;
                         }
-                        _progress=0.0;
+                        _progress = 0.0;
                         _startTask(6)
                             .whenComplete(() => Navigator.pop(context));
                         getpop_loader(context);
@@ -488,6 +487,7 @@ class _local_op_newState extends State<local_op_new> {
                         await _port!.write(Uint8List.fromList(data.codeUnits));
                         await getSiteName();
                       },
+                child: Text("SINM"),
               ),
               if (hexDecimalValue.isNotEmpty) infoCardWidget(),
             ],
@@ -499,7 +499,7 @@ class _local_op_newState extends State<local_op_new> {
 
   Widget infoCardWidget() {
     try {
-      if (_data!.join().contains('BOCOM1')) {
+      if (_data.join().contains('BOCOM1')) {
         return Expanded(
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
@@ -1004,7 +1004,7 @@ class _local_op_newState extends State<local_op_new> {
             ),
           ),
         );
-      } else if (_data!.join().contains('BOCOM6')) {
+      } else if (_data.join().contains('BOCOM6')) {
         var width = 180;
         var height = 400;
         return Expanded(
@@ -1628,7 +1628,7 @@ class _local_op_newState extends State<local_op_new> {
                                                           Padding(
                                                             padding:
                                                                 const EdgeInsets
-                                                                        .only(
+                                                                    .only(
                                                                     right: 2,
                                                                     top: 5,
                                                                     bottom: 5),
@@ -1684,9 +1684,9 @@ class _local_op_newState extends State<local_op_new> {
                                                                         .black45,
                                                                     child:
                                                                         Padding(
-                                                                      padding:
-                                                                          const EdgeInsets.all(
-                                                                              8.0),
+                                                                      padding: const EdgeInsets
+                                                                          .all(
+                                                                          8.0),
                                                                       child:
                                                                           Container(
                                                                         alignment:
@@ -2611,6 +2611,7 @@ class _local_op_newState extends State<local_op_new> {
                       ),
                       if ((subChakQty) >= 1)
                         Container(
+                          width: 48,
                           child: Padding(
                               padding: EdgeInsets.only(right: 15),
                               child: Text(
@@ -2619,7 +2620,6 @@ class _local_op_newState extends State<local_op_new> {
                                 style: TextStyle(
                                     fontSize: 10, fontWeight: FontWeight.w500),
                               )),
-                          width: 48,
                         ),
                       if ((subChakQty) >= 2)
                         Container(

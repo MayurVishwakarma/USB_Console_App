@@ -6042,7 +6042,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
         // return Card(child: Center(child: CircularProgressIndicator()));
         return Container();
       }
-    } catch (_, ex) {
+    } catch (_) {
       return Container();
     }
   }
@@ -10542,7 +10542,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
         },
       );
       _response = [];
-    } catch (_, ex) {
+    } catch (_) {
       _serialData.add('Please Try Again...');
     }
   }
