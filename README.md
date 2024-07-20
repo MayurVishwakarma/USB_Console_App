@@ -1,4 +1,4 @@
-# flutter_application_usb2
+# USB Console Application
 
 A new Flutter project.
 
