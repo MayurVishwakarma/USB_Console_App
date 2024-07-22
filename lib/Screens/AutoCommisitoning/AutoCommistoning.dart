@@ -4346,7 +4346,7 @@ getPostion_pfcmd_1() async {
               posval1 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval1.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 1 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4396,7 +4396,7 @@ getPostion_pfcmd_1() async {
               posval2 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval2.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 2 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4432,7 +4432,7 @@ getPostion_pfcmd_1() async {
               posval3 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval3.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 3 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4468,7 +4468,7 @@ getPostion_pfcmd_1() async {
               posval4 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval4.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 4 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4504,7 +4504,7 @@ getPostion_pfcmd_1() async {
               posval5 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval5.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 5 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4540,7 +4540,7 @@ getPostion_pfcmd_1() async {
               posval6 = double.parse(position_range[0]);
               var poscount = double.tryParse(position_range[1]);
               print(posval6.toString());
-              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount <= 20000;
               print(
                   'Is Position Sensor 6 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {

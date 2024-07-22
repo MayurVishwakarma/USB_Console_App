@@ -38,7 +38,7 @@ class _AutoDryCommissionScreenBluetoothState
         return Scaffold(
           appBar: AppBar(
             title: const Text(
-              "Auto Dry Commission",
+              "OMS Auto Dry Commission",
               style: TextStyle(fontSize: 16),
             ),
           ),
@@ -154,6 +154,34 @@ class _AutoDryCommissionScreenBluetoothState
                               style: TextStyle(),
                             ),
                           ),
+                          if (dt.controllerType != null &&
+                              dt.controllerType!.contains('BOCOM6'))
+                            Row(
+                              children: [
+                                Text("Controller Type:"),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Radio<int>(
+                                      value: 1,
+                                      groupValue: dt.pfcmcdType,
+                                      onChanged: (value) {
+                                        dt.updatePFCMDType(value ?? 0);
+                                      },
+                                    ),
+                                    Text('BOC Controller With 6 PT'),
+                                    Radio<int>(
+                                      value: 2,
+                                      groupValue: dt.pfcmcdType,
+                                      onChanged: (value) {
+                                        dt.updatePFCMDType(value ?? 0);
+                                      },
+                                    ),
+                                    Text('BOC Controller With 2 PT'),
+                                  ],
+                                )
+                              ],
+                            ),
                           Container(
                             alignment: Alignment.center,
                             width: MediaQuery.of(context).size.width,
@@ -355,8 +383,10 @@ class _AutoDryCommissionScreenBluetoothState
                                   TableCellVerticalAlignment.middle,
                               children: [
                                 TableRow(children: [
-                                  const Text(
-                                    "Filter Inlet PT",
+                                  Text(
+                                    dt.pfcmcdType == 1
+                                        ? "Filter Inlet PT"
+                                        : "Inlet PT",
                                   ),
                                   Text("${dt.data.filterInlet ?? ''} bar"),
                                   Row(
@@ -382,8 +412,10 @@ class _AutoDryCommissionScreenBluetoothState
                                   // Text(dt.data.InletButton ?? "Not Check Yet")
                                 ]),
                                 TableRow(children: [
-                                  const Text(
-                                    "Filter Outlet PT",
+                                  Text(
+                                    dt.pfcmcdType == 1
+                                        ? "Filter Outlet PT"
+                                        : "Outlet PT",
                                   ),
                                   Text("${dt.data.filterOutlet ?? ''} bar"),
                                   Row(
@@ -404,150 +436,156 @@ class _AutoDryCommissionScreenBluetoothState
                                     ],
                                   ),
                                 ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 1",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_1_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD1,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD1,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 2",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_2_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD2,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD2,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 3",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_3_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD3,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD3,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 4",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_4_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD4,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD4,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 5",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_5_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD5,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD5,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
-                                TableRow(children: [
-                                  const Text(
-                                    "Outlet PT 6",
-                                  ),
-                                  Text(
-                                      "${dt.data.outlet_6_actual_count_controller ?? ''} bar"),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Radio<String>(
-                                        value: 'OK',
-                                        groupValue: dt.data.PFCMD6,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('OK'),
-                                      Radio<String>(
-                                        value: 'Faulty',
-                                        groupValue: dt.data.PFCMD6,
-                                        onChanged: (value) {},
-                                      ),
-                                      const Text('Faulty'),
-                                    ],
-                                  ),
-                                ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 1",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_1_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD1,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD1,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 2",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_2_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD2,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD2,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 3",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_3_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD3,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD3,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 4",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_4_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD4,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD4,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 5",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_5_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD5,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD5,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
+                                if (dt.pfcmcdType == 1)
+                                  TableRow(children: [
+                                    const Text(
+                                      "Outlet PT 6",
+                                    ),
+                                    Text(
+                                        "${dt.data.outlet_6_actual_count_controller ?? ''} bar"),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Radio<String>(
+                                          value: 'OK',
+                                          groupValue: dt.data.PFCMD6,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('OK'),
+                                        Radio<String>(
+                                          value: 'Faulty',
+                                          groupValue: dt.data.PFCMD6,
+                                          onChanged: (value) {},
+                                        ),
+                                        const Text('Faulty'),
+                                      ],
+                                    ),
+                                  ]),
                               ],
                             ),
                           ),
@@ -574,13 +612,19 @@ class _AutoDryCommissionScreenBluetoothState
                                     padding: const EdgeInsets.all(2),
                                     child: ElevatedButton(
                                         onPressed: () {
-                                          dt.sendINTGMessage();
+                                          dt.getAllPositionSensorValue();
                                         },
                                         child: const Text("Check")),
                                   )
                                 ],
                               ),
                             ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: Text(
+                                "Click on Check Position Valve to get position sensor values (if you didn't get any response please click on the Position Sensor Button to get the value for the perticular position valve ) " /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
@@ -590,17 +634,41 @@ class _AutoDryCommissionScreenBluetoothState
                                         : 8),
                             child: Table(
                                 columnWidths: const {
-                                  0: FlexColumnWidth(5),
-                                  2: FlexColumnWidth(5)
+                                  0: FlexColumnWidth(2),
+                                  1: FlexColumnWidth(3),
+                                  2: FlexColumnWidth(2)
                                 },
                                 defaultVerticalAlignment:
                                     TableCellVerticalAlignment.middle,
                                 children: [
                                   TableRow(children: [
-                                    const Text(
-                                      "Position Sensor 1",
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion1Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text(
+                                          "Position Sensor 1",
+                                        ),
+                                      ),
                                     ),
-                                    Text("${dt.data.posval1 ?? ''} %"),
+                                    Text(
+                                      "${dt.data.posval1 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -620,8 +688,31 @@ class _AutoDryCommissionScreenBluetoothState
                                     ),
                                   ]),
                                   TableRow(children: [
-                                    const Text("Position Sensor 2"),
-                                    Text("${dt.data.posval2 ?? ''} %"),
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion2Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text("Position Sensor 2"),
+                                      ),
+                                    ),
+                                    Text(
+                                      "${dt.data.posval2 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -641,8 +732,31 @@ class _AutoDryCommissionScreenBluetoothState
                                     ),
                                   ]),
                                   TableRow(children: [
-                                    const Text("Position Sensor 3"),
-                                    Text("${dt.data.posval3 ?? ''} %"),
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion3Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text("Position Sensor 3"),
+                                      ),
+                                    ),
+                                    Text(
+                                      "${dt.data.posval3 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -662,10 +776,33 @@ class _AutoDryCommissionScreenBluetoothState
                                     ),
                                   ]),
                                   TableRow(children: [
-                                    const Text(
-                                      "Position Sensor 4",
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion4Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text(
+                                          "Position Sensor 4",
+                                        ),
+                                      ),
                                     ),
-                                    Text("${dt.data.posval4 ?? ''} %"),
+                                    Text(
+                                      "${dt.data.posval4 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -685,10 +822,33 @@ class _AutoDryCommissionScreenBluetoothState
                                     ),
                                   ]),
                                   TableRow(children: [
-                                    const Text(
-                                      "Position Sensor 5",
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion5Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text(
+                                          "Position Sensor 5",
+                                        ),
+                                      ),
                                     ),
-                                    Text("${dt.data.posval5 ?? ''} %"),
+                                    Text(
+                                      "${dt.data.posval5 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -708,10 +868,33 @@ class _AutoDryCommissionScreenBluetoothState
                                     ),
                                   ]),
                                   TableRow(children: [
-                                    const Text(
-                                      "Position Sensor 6",
+                                    InkWell(
+                                      onTap: () {
+                                        dt.getPostion6Value();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black,
+                                                blurRadius: 2,
+                                              )
+                                            ]),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: const Text(
+                                          "Position Sensor 6",
+                                        ),
+                                      ),
                                     ),
-                                    Text("${dt.data.posval6 ?? ''} %"),
+                                    Text(
+                                      "${dt.data.posval6 ?? ''} %",
+                                      textAlign: TextAlign.center,
+                                    ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [

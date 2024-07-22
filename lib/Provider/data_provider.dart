@@ -248,7 +248,6 @@ class DataProvider extends ChangeNotifier {
             await getSmodevalve(i);
             await getOmodevalve(i);
           }
-          getAllPositionSensorValue();
           notifyListeners();
         }
         updateIsLoading(false);
@@ -1527,13 +1526,18 @@ class DataProvider extends ChangeNotifier {
   }
 
   //get all position values from 1 to 6
-  getAllPositionSensorValue() {
-    getPostion1Value();
-    getPostion2Value();
-    getPostion3Value();
-    getPostion4Value();
-    getPostion5Value();
-    getPostion6Value();
+  getAllPositionSensorValue() async {
+    await getPostion1Value();
+    await Future.delayed(const Duration(seconds: 5));
+    await getPostion2Value();
+    await Future.delayed(const Duration(seconds: 5));
+    await getPostion3Value();
+    await Future.delayed(const Duration(seconds: 5));
+    await getPostion4Value();
+    await Future.delayed(const Duration(seconds: 5));
+    await getPostion5Value();
+    await Future.delayed(const Duration(seconds: 5));
+    await getPostion6Value();
   }
 
   getFilterInlet() {
@@ -1952,7 +1956,7 @@ class DataProvider extends ChangeNotifier {
   getPostion6Value() {
     try {
       sendMessage("${'AI 14'.toUpperCase()}\r\n");
-      updateCurrentIndex(1);
+      updateCurrentIndex(6);
       // var pos6hex = autoCommissionModel.hexIntgValue?.substring(142, 146);
       // int decimal = int.parse(pos6hex!, radix: 16);
       // double position6value = (decimal / 100);
