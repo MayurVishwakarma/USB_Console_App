@@ -893,13 +893,13 @@ class _RMSAutoDryCommissionScreenBluetoothState
                               child: ListView(
                                 shrinkWrap: true,
                                 scrollDirection: Axis.horizontal,
-                                children: [1]
+                                children: [1, 2, 3, 4, 5, 6]
                                     .map((e) => Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: SimpleButton(
                                             title: "Sov $e",
                                             onPressed: () {
-                                              dt.setRMSSovFlowControl(e);
+                                              dt.setSovFlowControl(e);
                                             },
                                           ),
                                         ))

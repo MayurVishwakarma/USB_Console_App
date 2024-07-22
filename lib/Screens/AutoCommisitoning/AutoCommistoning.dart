@@ -1536,7 +1536,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 8.0),
                             child: Text(
-                                "Click on Check Position Valve to get position sensor values (if you didn't get any response please click on the Position titel to get the value for the perticular position valve ) " /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),
+                                "Click on Check Position Valve to get position sensor values (if you didn't get any response please click on the Position Sensor Button to get the value for the perticular position valve ) " /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),
                           ),
                           Padding(
                             padding:
@@ -1585,12 +1585,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 1 :',
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 1',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1601,7 +1615,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval1 ?? ''} mA',
+                                              '${posval1 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -1638,12 +1652,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 2 :',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 2',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1654,7 +1682,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval2 ?? ''} mA',
+                                              '${posval2 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -1691,12 +1719,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 3 :',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 3',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1707,7 +1749,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval3 ?? ''} mA',
+                                              '${posval3 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -1744,12 +1786,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 4 :',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 4',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1760,7 +1816,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval4 ?? ''} mA',
+                                              '${posval4 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -1797,12 +1853,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 5 :',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 5',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1813,7 +1883,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval5 ?? ''} mA',
+                                              '${posval5 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -1850,12 +1920,26 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                         child: SizedBox(
                                             height: 50,
                                             child: Center(
-                                                child: Text(
-                                                    'Position Sensor 6 :',
-                                                    style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.bold)))),
+                                                child: Container(
+                                              decoration: BoxDecoration(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black26,
+                                                      blurRadius: 1.5,
+                                                      spreadRadius: 2.2,
+                                                      offset: Offset(1.5, 2),
+                                                    )
+                                                  ],
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text('Position Sensor 6',
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ))),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -1866,7 +1950,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                                               0.3,
                                           child: Center(
                                             child: Text(
-                                              '${posval6 ?? ''} mA',
+                                              '${posval6 ?? ''} %',
                                             ),
                                           ),
                                         ),
@@ -3437,7 +3521,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                   'You have connected to unknown device${controllerType ?? ""}',
                   textAlign: TextAlign.center,
                 ),
-                Padding(
+                /*Padding(
                   padding: const EdgeInsets.only(top: 25.0),
                   child: TextButton(
                     onPressed: () async {
@@ -3456,6 +3540,7 @@ class _AutoCommistioningScreenState extends State<AutoCommistioningScreen>
                     ),
                   ),
                 ),
+              */
               ],
             ),
           ),
@@ -4254,12 +4339,14 @@ getPostion_pfcmd_1() async {
           if (_serialData.join(' ').toUpperCase().contains('AI 9')) {
             String res = _serialData.join('');
             int i = res.indexOf("AI");
-            var aisData = res.substring(i + 5);
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 5, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval1 = double.parse(position_range[1]);
+              posval1 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval1.toString());
-              bool isWithinRange = posval1! >= 3800 && posval1! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 1 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4302,12 +4389,14 @@ getPostion_pfcmd_1() async {
           if (_serialData.join(' ').toUpperCase().contains('AI 10')) {
             String res = _serialData.join('');
             int i = res.indexOf("AI");
-            var aisData = res.substring(i + 7);
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval2 = double.parse(position_range[1]);
+              posval2 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval2.toString());
-              bool isWithinRange = posval2! >= 3800 && posval2! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 2 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4340,9 +4429,10 @@ getPostion_pfcmd_1() async {
             var aisData = res.substring(i + 7, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval3 = double.parse(position_range[1]);
+              posval3 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval3.toString());
-              bool isWithinRange = posval3! >= 3800 && posval3! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 3 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4375,9 +4465,10 @@ getPostion_pfcmd_1() async {
             var aisData = res.substring(i + 7, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval4 = double.parse(position_range[1]);
+              posval4 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval4.toString());
-              bool isWithinRange = posval4! >= 3800 && posval4! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 4 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4410,9 +4501,10 @@ getPostion_pfcmd_1() async {
             var aisData = res.substring(i + 7, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval5 = double.parse(position_range[1]);
+              posval5 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval5.toString());
-              bool isWithinRange = posval5! >= 3800 && posval5! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 5 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {
@@ -4445,9 +4537,10 @@ getPostion_pfcmd_1() async {
             var aisData = res.substring(i + 7, lastindex);
             List<String> position_range = aisData.split(' ');
             setState(() {
-              posval6 = double.parse(position_range[1]);
+              posval6 = double.parse(position_range[0]);
+              var poscount = double.tryParse(position_range[1]);
               print(posval6.toString());
-              bool isWithinRange = posval6! >= 3800 && posval6! <= 20000;
+              bool isWithinRange = poscount! >= 3800 && poscount! <= 20000;
               print(
                   'Is Position Sensor 6 between 3800 and 20000? $isWithinRange');
               if (isWithinRange) {

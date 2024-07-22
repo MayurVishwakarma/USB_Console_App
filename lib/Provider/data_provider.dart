@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_usb2/Screens/Login/Dashboard.dart';
@@ -48,11 +49,6 @@ class DataProvider extends ChangeNotifier {
   Data _data = Data();
   Data get data => _data;
 
-  double? _ptSetPoint = 2.5;
-  double? get ptSetpoint => _ptSetPoint;
-  double? upperLimit = 2.5 * 0.9;
-  double? lowerLimit = 2.5 * 1.1;
-
   LoginMasterModel? user;
 
   bool _isLoading = false;
@@ -62,16 +58,28 @@ class DataProvider extends ChangeNotifier {
 
   List<String> _response = [];
   String pdfSavedPath = "";
+  int _pfcmcdType = 1;
+  int get pfcmcdType => _pfcmcdType;
 
-  updateFlowControlMode(bool? val) {
-    showSovFlowControlMode = val ?? false;
-    notifyListeners();
-  }
+  double? _ptSetPoint = 2.5;
+  double? get ptSetpoint => _ptSetPoint;
+  double? upperLimit = 2.5 * 0.9;
+  double? lowerLimit = 2.5 * 1.1;
 
   updateSetPoint(double newSetPoint) {
     _ptSetPoint = newSetPoint;
     lowerLimit = newSetPoint * 0.9;
     upperLimit = newSetPoint * 1.1;
+  }
+
+  updatePFCMDType(int newValue) {
+    _pfcmcdType = newValue;
+    notifyListeners();
+  }
+
+  updateFlowControlMode(bool? val) {
+    showSovFlowControlMode = val ?? false;
+    notifyListeners();
   }
 
   updateIsLoading(bool newLoad) {
@@ -243,19 +251,6 @@ class DataProvider extends ChangeNotifier {
           getAllPositionSensorValue();
           notifyListeners();
         }
-        if (result.contains("BOCRMS")) {
-          var newhexIntgValue =
-              reverseString(reverseString(_response.join()).substring(0, 68));
-          autoCommissionModel.updateHexIntgValue(newhexIntgValue);
-          getAllINTGPacket();
-          getAllPTValues();
-          for (int i = 1; i <= 6; i++) {
-            await getSmodevalve(i);
-            await getOmodevalve(i);
-          }
-          getAllPositionSensorValue();
-          notifyListeners();
-        }
         updateIsLoading(false);
         break;
       case "DTS":
@@ -330,8 +325,82 @@ class DataProvider extends ChangeNotifier {
           }
         }
 
+        if (_currentCommand == "AI ${(currentIndex ?? 0) + 8}") {
+          if (result.toUpperCase().contains('AI ${(currentIndex ?? 0) + 8}')) {
+            String res = result;
+            int i = res.indexOf("AI");
+            int lastindex = res.indexOf(">");
+            var aisData = res.substring(i + 7, lastindex);
+            List<String> position_range = aisData.split(' ');
+            updatePosValUsingCurrentIndex(
+                currentIndex ?? 0, double.tryParse(position_range[0]));
+            var poscount = double.tryParse(position_range[1]);
+            bool isWithinRange =
+                (poscount ?? 0) >= 3800 && (poscount ?? 0) <= 20000;
+            print(
+                'Is Position Sensor 3 between 3800 and 20000? $isWithinRange');
+            if (isWithinRange) {
+              updatePosUsingCurrentIndex(currentIndex ?? 0, "OK");
+            } else {
+              updatePosUsingCurrentIndex(currentIndex ?? 0, "Faulty");
+            }
+          }
+        }
+
         break;
     }
+  }
+
+  void updatePosValUsingCurrentIndex(int currentIndex, double? value) {
+    switch (currentIndex) {
+      case 1:
+        data.posval1 = value;
+        break;
+      case 2:
+        data.posval2 = value;
+        break;
+      case 3:
+        data.posval3 = value;
+        break;
+      case 4:
+        data.posval4 = value;
+        break;
+      case 5:
+        data.posval5 = value;
+        break;
+      case 6:
+        data.posval6 = value;
+        break;
+      default:
+        break;
+    }
+    notifyListeners();
+  }
+
+  void updatePosUsingCurrentIndex(int currentIndex, String value) {
+    switch (currentIndex) {
+      case 1:
+        data.pos1 = value;
+        break;
+      case 2:
+        data.pos2 = value;
+        break;
+      case 3:
+        data.pos3 = value;
+        break;
+      case 4:
+        data.pos4 = value;
+        break;
+      case 5:
+        data.pos5 = value;
+        break;
+      case 6:
+        data.pos6 = value;
+        break;
+      default:
+        break;
+    }
+    notifyListeners();
   }
 
   void getValveOpenPFCMD6(String result) {
@@ -430,12 +499,6 @@ class DataProvider extends ChangeNotifier {
 
   setSovFlowControl(int index) async {
     String data = 'PFCMD6TYPE $index 2'.toUpperCase();
-    updateCurrentIndex(index);
-    sendMessage(data);
-  }
-
-  setRMSSovFlowControl(int index) async {
-    String data = 'PFCMD1TYPE 2'.toUpperCase();
     updateCurrentIndex(index);
     sendMessage(data);
   }
@@ -1802,14 +1865,16 @@ class DataProvider extends ChangeNotifier {
 
   getPostion1Value() {
     try {
-      var pos1hex = autoCommissionModel.hexIntgValue?.substring(42, 46);
-      int decimal = int.parse(pos1hex!, radix: 16);
-      double position1value = (decimal / 100);
-      bool isWithinRange = position1value >= 0 && position1value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval1 = position1value;
-      data.pos1 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      sendMessage("${'AI 9'.toUpperCase()}\r\n");
+      updateCurrentIndex(1);
+      // var pos1hex = autoCommissionModel.hexIntgValue?.substring(42, 46);
+      // int decimal = int.parse(pos1hex!, radix: 16);
+      // double position1value = (decimal / 100);
+      // bool isWithinRange = position1value >= 0 && position1value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval1 = position1value;
+      // data.pos1 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -1817,14 +1882,16 @@ class DataProvider extends ChangeNotifier {
 
   getPostion2Value() {
     try {
-      var pos2hex = autoCommissionModel.hexIntgValue?.substring(62, 66);
-      int decimal = int.parse(pos2hex!, radix: 16);
-      double position2value = (decimal / 100);
-      bool isWithinRange = position2value >= 0 && position2value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval2 = position2value;
-      data.pos2 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      sendMessage("${'AI 10'.toUpperCase()}\r\n");
+      updateCurrentIndex(2);
+      // var pos2hex = autoCommissionModel.hexIntgValue?.substring(62, 66);
+      // int decimal = int.parse(pos2hex!, radix: 16);
+      // double position2value = (decimal / 100);
+      // bool isWithinRange = position2value >= 0 && position2value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval2 = position2value;
+      // data.pos2 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -1832,14 +1899,16 @@ class DataProvider extends ChangeNotifier {
 
   getPostion3Value() {
     try {
-      var pos3hex = autoCommissionModel.hexIntgValue?.substring(82, 86);
-      int decimal = int.parse(pos3hex!, radix: 16);
-      double position3value = (decimal / 100);
-      bool isWithinRange = position3value >= 0 && position3value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval3 = position3value;
-      data.pos3 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      sendMessage("${'AI 11'.toUpperCase()}\r\n");
+      updateCurrentIndex(3);
+      // var pos3hex = autoCommissionModel.hexIntgValue?.substring(82, 86);
+      // int decimal = int.parse(pos3hex!, radix: 16);
+      // double position3value = (decimal / 100);
+      // bool isWithinRange = position3value >= 0 && position3value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval3 = position3value;
+      // data.pos3 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -1847,14 +1916,16 @@ class DataProvider extends ChangeNotifier {
 
   getPostion4Value() {
     try {
-      var pos4hex = autoCommissionModel.hexIntgValue?.substring(103, 106);
-      int decimal = int.parse(pos4hex!, radix: 16);
-      double position4value = (decimal / 100);
-      bool isWithinRange = position4value >= 0 && position4value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval4 = position4value;
-      data.pos4 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      sendMessage("${'AI 12'.toUpperCase()}\r\n");
+      updateCurrentIndex(4);
+      // var pos4hex = autoCommissionModel.hexIntgValue?.substring(103, 106);
+      // int decimal = int.parse(pos4hex!, radix: 16);
+      // double position4value = (decimal / 100);
+      // bool isWithinRange = position4value >= 0 && position4value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval4 = position4value;
+      // data.pos4 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -1862,15 +1933,17 @@ class DataProvider extends ChangeNotifier {
 
   getPostion5Value() {
     try {
-      var pos5hex = autoCommissionModel.hexIntgValue?.substring(122, 126);
+      sendMessage("${'AI 13'.toUpperCase()}\r\n");
+      updateCurrentIndex(5);
+      // var pos5hex = autoCommissionModel.hexIntgValue?.substring(122, 126);
 
-      int decimal = int.parse(pos5hex!, radix: 16);
-      double position5value = (decimal / 100);
-      bool isWithinRange = position5value >= 0 && position5value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval5 = position5value;
-      data.pos5 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      // int decimal = int.parse(pos5hex!, radix: 16);
+      // double position5value = (decimal / 100);
+      // bool isWithinRange = position5value >= 0 && position5value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval5 = position5value;
+      // data.pos5 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -1878,14 +1951,16 @@ class DataProvider extends ChangeNotifier {
 
   getPostion6Value() {
     try {
-      var pos6hex = autoCommissionModel.hexIntgValue?.substring(142, 146);
-      int decimal = int.parse(pos6hex!, radix: 16);
-      double position6value = (decimal / 100);
-      bool isWithinRange = position6value >= 0 && position6value <= 100;
-      print('Is filterOutlet between 4000 and 20000? $isWithinRange');
-      data.posval6 = position6value;
-      data.pos6 = isWithinRange ? "OK" : "Faulty";
-      notifyListeners(); //update ui
+      sendMessage("${'AI 14'.toUpperCase()}\r\n");
+      updateCurrentIndex(1);
+      // var pos6hex = autoCommissionModel.hexIntgValue?.substring(142, 146);
+      // int decimal = int.parse(pos6hex!, radix: 16);
+      // double position6value = (decimal / 100);
+      // bool isWithinRange = position6value >= 0 && position6value <= 100;
+      // print('Is filterOutlet between 4000 and 20000? $isWithinRange');
+      // data.posval6 = position6value;
+      // data.pos6 = isWithinRange ? "OK" : "Faulty";
+      // notifyListeners(); //update ui
     } catch (_, ex) {
       print(ex);
     }
@@ -2003,371 +2078,370 @@ class DataProvider extends ChangeNotifier {
   }
 
   void _submitForm(BuildContext context) {
-    if (controllerType!.contains('BOCOM6')) {
-      final pdfWidgets.Document pdf = pdfWidgets.Document();
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                pdfWidgets.Center(
-                  child: pdfWidgets.Text(
-                    'Auto Dry Commissinning Report',
-                    style: pdfWidgets.TextStyle(
-                        fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
-                  ),
+    final pdfWidgets.Document pdf = pdfWidgets.Document();
+    pdf.addPage(pdfWidgets.Page(build: (context) {
+      return pdfWidgets.Container(
+        child: pdfWidgets.Column(
+            mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+            crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+            children: [
+              pdfWidgets.Center(
+                child: pdfWidgets.Text(
+                  'Auto Dry Commissinning Report',
+                  style: pdfWidgets.TextStyle(
+                      fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
                 ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  child: pdfWidgets.Column(
-                    children: [
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Site Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(
-                              autoCommissionModel.siteName ?? 'Not Check Yet')
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Node No :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(
-                              autoCommissionModel.nodeNo ?? 'Not Check Yet')
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 5),
-                    ],
-                  ),
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Container(
+                child: pdfWidgets.Column(
+                  children: [
+                    pdfWidgets.SizedBox(height: 10),
+                    pdfWidgets.Row(
+                      children: [
+                        pdfWidgets.Text('Site Name :',
+                            style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold)),
+                        pdfWidgets.SizedBox(width: 20),
+                        pdfWidgets.Text(
+                            autoCommissionModel.siteName ?? 'Not Check Yet')
+                      ],
+                    ),
+                    pdfWidgets.SizedBox(height: 10),
+                    pdfWidgets.Row(
+                      children: [
+                        pdfWidgets.Text('Node No :',
+                            style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold)),
+                        pdfWidgets.SizedBox(width: 20),
+                        pdfWidgets.Text(
+                            autoCommissionModel.nodeNo ?? 'Not Check Yet')
+                      ],
+                    ),
+                    pdfWidgets.SizedBox(height: 5),
+                  ],
                 ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'General Checks ',
-                                style: pdfWidgets.TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Firmware Version :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.firmwareversion ?? "Not Check Yet"}',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Mac ID :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.mid ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Battery Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.batteryVlt ?? 'Not Check Yet'} V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Solar Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.solarVlt ?? 'Not Check Yet'} V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 1 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.door1 ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 2 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.door2 ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication Check',
-                                style: pdfWidgets.TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.loraCommunication ??
-                                    'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Container(
+                width: 200,
+                child: pdfWidgets.Column(
+                  mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                  children: [
+                    pdfWidgets.Padding(
                       padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Inlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'General Checks ',
+                              style: pdfWidgets.TextStyle(
+                                fontSize: 22,
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Firmware Version :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '${autoCommissionModel.firmwareversion ?? "Not Check Yet"}',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Mac ID :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              autoCommissionModel.mid ?? 'Not Check Yet',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Battery Voltage :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '${autoCommissionModel.batteryVlt ?? 'Not Check Yet'} V',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Solar Voltage :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          // Replace with your actual battery percentage
+
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              '${autoCommissionModel.solarVlt ?? 'Not Check Yet'} V',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            // color: Colors.blue,
+                            child: pdfWidgets.Text(
+                              'Door 1 :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              autoCommissionModel.door1 ?? 'Not Check Yet',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            // color: Colors.blue,
+                            child: pdfWidgets.Text(
+                              'Door 2 :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              autoCommissionModel.door2 ?? 'Not Check Yet',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Container(
+                width: 200,
+                child: pdfWidgets.Column(
+                  mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                  children: [
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Lora Communication Check',
+                              style: pdfWidgets.TextStyle(
+                                fontSize: 22,
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    pdfWidgets.Padding(
+                      padding: const pdfWidgets.EdgeInsets.all(8.0),
+                      child: pdfWidgets.Row(
+                        mainAxisAlignment:
+                            pdfWidgets.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              'Lora Communication :',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          pdfWidgets.SizedBox(
+                            child: pdfWidgets.Text(
+                              autoCommissionModel.loraCommunication ??
+                                  'Not Check Yet',
+                              style: pdfWidgets.TextStyle(
+                                fontWeight: pdfWidgets.FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  decoration: pdfWidgets.BoxDecoration(
+                      borderRadius: pdfWidgets.BorderRadius.circular(5)),
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Inlet PT Valve Test',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                      width: 1, color: PdfColors.black),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('PT Name',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Pressure',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Technician Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Filter Inlet PT'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.filterInlet ?? "Not Check Yet"} bar',
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Filter Inlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.filterInlet ?? "Not Check Yet"} bar',
-                              ),
-                            ),
-                          ),
-                          /*pdfWidgets.Expanded(
+                        ),
+                        /*pdfWidgets.Expanded(
                           flex: 1,
                           child: pdfWidgets.Container(
                             height: 20,
@@ -2377,118 +2451,119 @@ class DataProvider extends ChangeNotifier {
                             ),
                           ),
                         ),*/
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.InletButton ?? "Not Check Yet"),
-                            ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                                data.InletButton ?? "Not Check Yet"),
                           ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Flter Outlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.filterOutlet ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.OutletButton ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-        );
-      }));
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Outlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
                         ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Flter Outlet PT'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.filterOutlet ?? 'Not Check Yet'} bar',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                                data.OutletButton ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+      );
+    }));
+    pdf.addPage(pdfWidgets.Page(build: (context) {
+      return pdfWidgets.Container(
+        child: pdfWidgets.Column(
+            mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
+            crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+            children: [
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  decoration: pdfWidgets.BoxDecoration(
+                      borderRadius: pdfWidgets.BorderRadius.circular(5)),
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Outlet PT Valve Test',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                      width: 1, color: PdfColors.black),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('PT Name',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Pressure',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Technician Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2520,6 +2595,7 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2551,6 +2627,7 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2582,6 +2659,7 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2613,6 +2691,7 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2644,6 +2723,7 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
+                    if (pfcmcdType == 1)
                       pdfWidgets.TableRow(
                         children: [
                           pdfWidgets.Expanded(
@@ -2675,1707 +2755,518 @@ class DataProvider extends ChangeNotifier {
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Position Sensor Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Value',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 1'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval1 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos1 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 2'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval2 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos2 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 3'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval3 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos3 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 4'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval4 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos4 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 5'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval5?.toString() ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos5 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 6'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval6?.toString() ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos6 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Solenoid Testing',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                      color: PdfColors.black,
-                      width: 1,
-                      style: pdfWidgets.BorderStyle.solid,
-                    ),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Solenoid',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 1
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 1',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov1 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              //
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 2',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov2 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // PFCMD 3
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 3',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov3 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 4',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov4 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 5',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov5 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 6',
-                                ),
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov6 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Done By:  ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(user?.fName ?? 'Not Check Yet')
                   ],
                 ),
-                pdfWidgets.SizedBox(height: 10),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Date: ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(getcurrentdate())
-                  ],
-                ),
-              ]),
-        );
-      }));
-      savePDF(pdf, context);
-    }
-    if (controllerType!.contains('BOCRMS')) {
-      final pdfWidgets.Document pdf = pdfWidgets.Document();
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                pdfWidgets.Center(
-                  child: pdfWidgets.Text(
-                    'RMS Auto Dry Commissinning Report',
-                    style: pdfWidgets.TextStyle(
-                        fontSize: 24, fontWeight: pdfWidgets.FontWeight.bold),
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  child: pdfWidgets.Column(
-                    children: [
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Site Name :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(
-                              autoCommissionModel.siteName ?? 'Not Check Yet')
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 10),
-                      pdfWidgets.Row(
-                        children: [
-                          pdfWidgets.Text('Node No :',
-                              style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold)),
-                          pdfWidgets.SizedBox(width: 20),
-                          pdfWidgets.Text(
-                              autoCommissionModel.nodeNo ?? 'Not Check Yet')
-                        ],
-                      ),
-                      pdfWidgets.SizedBox(height: 5),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'General Checks ',
-                                style: pdfWidgets.TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Firmware Version :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.firmwareversion ?? "Not Check Yet"}',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Mac ID :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.mid ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Battery Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.batteryVlt ?? 'Not Check Yet'} V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Solar Voltage :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            // Replace with your actual battery percentage
-
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                '${autoCommissionModel.solarVlt ?? 'Not Check Yet'} V',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 1 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.door1 ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              // color: Colors.blue,
-                              child: pdfWidgets.Text(
-                                'Door 2 :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.door2 ?? 'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Container(
-                  width: 200,
-                  child: pdfWidgets.Column(
-                    mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication Check',
-                                style: pdfWidgets.TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pdfWidgets.Padding(
-                        padding: const pdfWidgets.EdgeInsets.all(8.0),
-                        child: pdfWidgets.Row(
-                          mainAxisAlignment:
-                              pdfWidgets.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                'Lora Communication :',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            pdfWidgets.SizedBox(
-                              child: pdfWidgets.Text(
-                                autoCommissionModel.loraCommunication ??
-                                    'Not Check Yet',
-                                style: pdfWidgets.TextStyle(
-                                  fontWeight: pdfWidgets.FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Inlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
-                        ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  decoration: pdfWidgets.BoxDecoration(
+                      borderRadius: pdfWidgets.BorderRadius.circular(5)),
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Position Sensor Test',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                      width: 1, color: PdfColors.black),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Value',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
                           ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Inlet PT'),
-                            ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 1'),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.filterInlet ?? "Not Check Yet"} bar',
-                              ),
-                            ),
-                          ),
-                          /*pdfWidgets.Expanded(
+                        ),
+                        pdfWidgets.Expanded(
                           flex: 1,
                           child: pdfWidgets.Container(
                             height: 20,
                             alignment: pdfWidgets.Alignment.center,
                             child: pdfWidgets.Text(
-                              '${aibarvalue.toString()} bar',
+                              '${data.posval1 ?? 'Not Check Yet'} %',
                             ),
                           ),
-                        ),*/
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.InletButton ?? "Not Check Yet"),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.filterOutlet ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.OutletButton ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
-        );
-      }));
-      pdf.addPage(pdfWidgets.Page(build: (context) {
-        return pdfWidgets.Container(
-          child: pdfWidgets.Column(
-              mainAxisAlignment: pdfWidgets.MainAxisAlignment.start,
-              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-              children: [
-                /*pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Outlet PT Valve Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('PT Name',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos1 ?? 'Not Check Yet'),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Pressure',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 1'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_1_actual_count_controller ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD1 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 2'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_2_actual_count_controller?.toString() ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD2 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 3'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_3_actual_count_controller?.toString() ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD3 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 4'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_4_actual_count_controller?.toString() ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD4 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 5'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_5_actual_count_controller?.toString() ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD5 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Outlet PT 6'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.outlet_6_actual_count_controller ?? 'Not Check Yet'} bar',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                  data.PFCMD6 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-               */
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    decoration: pdfWidgets.BoxDecoration(
-                        borderRadius: pdfWidgets.BorderRadius.circular(5)),
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Position Sensor Test',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                        width: 1, color: PdfColors.black),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 2'),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Value',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 1'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval1 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos1 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      /*pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 2'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval2 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos2 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 3'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval3 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos3 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 4'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval4 ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos4 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 5'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval5?.toString() ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos5 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Position Sensor 6'),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text(
-                                '${data.posval6?.toString() ?? 'Not Check Yet'} %',
-                              ),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child:
-                                  pdfWidgets.Text(data.pos6 ?? 'Not Check Yet'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    */
-                    ],
-                  ),
-                ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8.0),
-                  child: pdfWidgets.Container(
-                    width: double.infinity,
-                    child: pdfWidgets.Padding(
-                      padding: const pdfWidgets.EdgeInsets.all(8.0),
-                      child: pdfWidgets.Text(
-                        'Solenoid Testing',
-                        style: pdfWidgets.TextStyle(
-                          fontSize: 22,
-                          fontWeight: pdfWidgets.FontWeight.bold,
                         ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.posval2 ?? 'Not Check Yet'} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos2 ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 3'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.posval3 ?? 'Not Check Yet'} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos3 ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 4'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.posval4 ?? 'Not Check Yet'} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos4 ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 5'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.posval5?.toString() ?? 'Not Check Yet'} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos5 ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Position Sensor 6'),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text(
+                              '${data.posval6?.toString() ?? 'Not Check Yet'} %',
+                            ),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child:
+                                pdfWidgets.Text(data.pos6 ?? 'Not Check Yet'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8.0),
+                child: pdfWidgets.Container(
+                  width: double.infinity,
+                  child: pdfWidgets.Padding(
+                    padding: const pdfWidgets.EdgeInsets.all(8.0),
+                    child: pdfWidgets.Text(
+                      'Solenoid Testing',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 22,
+                        fontWeight: pdfWidgets.FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                pdfWidgets.Padding(
-                  padding: const pdfWidgets.EdgeInsets.all(8),
-                  child: pdfWidgets.Table(
-                    border: pdfWidgets.TableBorder.all(
-                      color: PdfColors.black,
-                      width: 1,
-                      style: pdfWidgets.BorderStyle.solid,
+              ),
+              pdfWidgets.Padding(
+                padding: const pdfWidgets.EdgeInsets.all(8),
+                child: pdfWidgets.Table(
+                  border: pdfWidgets.TableBorder.all(
+                    color: PdfColors.black,
+                    width: 1,
+                    style: pdfWidgets.BorderStyle.solid,
+                  ),
+                  children: [
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Solenoid',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            alignment: pdfWidgets.Alignment.center,
+                            child: pdfWidgets.Text('Technician Remark',
+                                style: pdfWidgets.TextStyle(
+                                    fontWeight: pdfWidgets.FontWeight.bold)),
+                          ),
+                        ),
+                      ],
                     ),
-                    children: [
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Solenoid',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              alignment: pdfWidgets.Alignment.center,
-                              child: pdfWidgets.Text('Technician Remark',
-                                  style: pdfWidgets.TextStyle(
-                                      fontWeight: pdfWidgets.FontWeight.bold)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      //PFCMD 1
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 1',
-                                ),
+                    //PFCMD 1
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 1',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov1 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                //
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov1 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      /* pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              //
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 2',
-                                ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            //
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 2',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov2 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                //
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov2 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
 
-                      // PFCMD 3
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 3',
-                                ),
+                    // PFCMD 3
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 3',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov3 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                //
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov3 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 4',
-                                ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 4',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  //
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov4 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                //
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov4 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 5',
-                                ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 5',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov5 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov5 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      pdfWidgets.TableRow(
-                        children: [
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Container(
-                              height: 20,
-                              child: pdfWidgets.Center(
-                                child: pdfWidgets.Text(
-                                  'SOV 6',
-                                ),
+                        ),
+                      ],
+                    ),
+                    pdfWidgets.TableRow(
+                      children: [
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Container(
+                            height: 20,
+                            child: pdfWidgets.Center(
+                              child: pdfWidgets.Text(
+                                'SOV 6',
                               ),
                             ),
                           ),
-                          pdfWidgets.Expanded(
-                            flex: 1,
-                            child: pdfWidgets.Row(
-                              mainAxisAlignment:
-                                  pdfWidgets.MainAxisAlignment.center,
-                              children: [
-                                pdfWidgets.Container(
-                                  height: 20,
-                                  child: pdfWidgets.Center(
-                                      child: pdfWidgets.Text(
-                                          data.sov6 ?? 'Not Check Yet')),
-                                ),
-                              ],
-                            ),
+                        ),
+                        pdfWidgets.Expanded(
+                          flex: 1,
+                          child: pdfWidgets.Row(
+                            mainAxisAlignment:
+                                pdfWidgets.MainAxisAlignment.center,
+                            children: [
+                              pdfWidgets.Container(
+                                height: 20,
+                                child: pdfWidgets.Center(
+                                    child: pdfWidgets.Text(
+                                        data.sov6 ?? 'Not Check Yet')),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    */
-                    ],
-                  ),
-                ),
-                pdfWidgets.Divider(),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Done By:  ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(user?.fName ?? 'Not Check Yet')
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                pdfWidgets.SizedBox(height: 10),
-                pdfWidgets.Row(
-                  children: [
-                    pdfWidgets.Text('Date: ',
-                        style: pdfWidgets.TextStyle(
-                            fontWeight: pdfWidgets.FontWeight.bold)),
-                    pdfWidgets.Text(getcurrentdate())
-                  ],
-                ),
-              ]),
-        );
-      }));
-      savePDF(pdf, context);
-    }
+              ),
+              pdfWidgets.Divider(),
+              pdfWidgets.Row(
+                children: [
+                  pdfWidgets.Text('Done By:  ',
+                      style: pdfWidgets.TextStyle(
+                          fontWeight: pdfWidgets.FontWeight.bold)),
+                  pdfWidgets.Text(user?.fName ?? 'Not Check Yet')
+                ],
+              ),
+              pdfWidgets.SizedBox(height: 10),
+              pdfWidgets.Row(
+                children: [
+                  pdfWidgets.Text('Date: ',
+                      style: pdfWidgets.TextStyle(
+                          fontWeight: pdfWidgets.FontWeight.bold)),
+                  pdfWidgets.Text(getcurrentdate())
+                ],
+              ),
+            ]),
+      );
+    }));
+    savePDF(pdf, context);
     updateFlowControlMode(true);
   }
 
