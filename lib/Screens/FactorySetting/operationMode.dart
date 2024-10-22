@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_usb2/core/app_export.dart';
+import 'package:usb_console_application/core/app_export.dart';
 import 'package:get/get.dart';
 import 'package:hex/hex.dart';
 import 'package:intl/intl.dart';
@@ -195,7 +195,6 @@ class _operation_modeState extends State<operation_mode> {
                 ),
               ),
             ElevatedButton(
-              child: Text("SINM"),
               onPressed: _port == null
                   ? null
                   : () async {
@@ -212,6 +211,7 @@ class _operation_modeState extends State<operation_mode> {
                       await _port!.write(Uint8List.fromList(data.codeUnits));
                       await getSiteName();
                     },
+              child: Text("SINM"),
             ),
             if (hexDecimalValue.isNotEmpty) infoCardWidget(),
           ],
@@ -222,7 +222,7 @@ class _operation_modeState extends State<operation_mode> {
 
   Widget infoCardWidget() {
     try {
-      if (_data!.join().contains('BOCOM1')) {
+      if (_data.join().contains('BOCOM1')) {
         return Card(
           elevation: 8,
           child: Column(
@@ -376,11 +376,11 @@ class _operation_modeState extends State<operation_mode> {
                                 controller: _flowsetpointcontroller,
                                 textAlign: TextAlign.center,
                                 keyboardType: TextInputType.number,
-                                validator: (_name) {
-                                  if (_name!.isEmpty) {
+                                validator: (name) {
+                                  if (name!.isEmpty) {
                                     return 'Please enter a value';
                                   }
-                                  final doubleValue = double.tryParse(_name);
+                                  final doubleValue = double.tryParse(name);
                                   if (doubleValue == null) {
                                     return 'Please enter a valid number';
                                   }
@@ -601,7 +601,7 @@ class _operation_modeState extends State<operation_mode> {
             ],
           ),
         );
-      } else if (_data!.join().contains('BOCOM6')) {
+      } else if (_data.join().contains('BOCOM6')) {
         return Expanded(
           child: SingleChildScrollView(
             child: Card(
@@ -816,12 +816,12 @@ class _operation_modeState extends State<operation_mode> {
                                     controller: _flowsetpointcontroller,
                                     textAlign: TextAlign.center,
                                     keyboardType: TextInputType.number,
-                                    validator: (_name) {
-                                      if (_name!.isEmpty) {
+                                    validator: (name) {
+                                      if (name!.isEmpty) {
                                         return 'Please enter a value';
                                       }
                                       final doubleValue =
-                                          double.tryParse(_name);
+                                          double.tryParse(name);
                                       if (doubleValue == null) {
                                         return 'Please enter a valid number';
                                       }
@@ -1183,7 +1183,7 @@ class _operation_modeState extends State<operation_mode> {
         },
       );
       _response = [];
-    } catch (_, ex) {
+    } catch (_) {
       _serialData.add('Please Try Again...');
     }
   }
@@ -1198,7 +1198,7 @@ class _operation_modeState extends State<operation_mode> {
             .toUpperCase() +
         "\r\n";
     _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1274,7 +1274,7 @@ class _operation_modeState extends State<operation_mode> {
   SetMode() async {
     String data = 'SMODE 2 1 1'.toUpperCase() + "\r\n";
     await _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1350,7 +1350,7 @@ class _operation_modeState extends State<operation_mode> {
   Set_irrigation_mode() async {
     String data = 'STPIRR 0'.toUpperCase() + "\r\n";
     await _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1426,7 +1426,7 @@ class _operation_modeState extends State<operation_mode> {
   Set_Emergency_mode() async {
     String data = 'EMS 0'.toUpperCase() + "\r\n";
     await _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1502,7 +1502,7 @@ class _operation_modeState extends State<operation_mode> {
   SetMode6(int index) async {
     String data = 'SMODE $index 2 1 1'.toUpperCase() + "\r\n";
     await _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1586,7 +1586,7 @@ class _operation_modeState extends State<operation_mode> {
         "\r\n";
     _port!.write(Uint8List.fromList(data.codeUnits));
 
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {
@@ -1662,7 +1662,7 @@ class _operation_modeState extends State<operation_mode> {
   Set_irrigation_mode6(int i) async {
     String data = 'STPIRR $i 0'.toUpperCase() + "\r\n";
     await _port!.write(Uint8List.fromList(data.codeUnits));
-    new Future.delayed(Duration(seconds: 5)).whenComplete(() {
+    Future.delayed(Duration(seconds: 5)).whenComplete(() {
       String res = _data.join('');
       print(res + 'resooos');
       if (res.toLowerCase().contains('matched')) {

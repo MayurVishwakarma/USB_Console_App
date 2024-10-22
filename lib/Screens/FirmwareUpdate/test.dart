@@ -155,7 +155,6 @@ class _UsbConsoleScreen_testState extends State<UsbConsoleScreen_test> {
                 ),
               ),
               trailing: ElevatedButton(
-                child: Text("Send"),
                 onPressed: _port == null
                     ? null
                     : () async {
@@ -168,6 +167,7 @@ class _UsbConsoleScreen_testState extends State<UsbConsoleScreen_test> {
                         _response.clear();
                         await _port!.write(Uint8List.fromList(data.codeUnits));
                       },
+                child: Text("Send"),
               ),
             ),
             if (_port != null)

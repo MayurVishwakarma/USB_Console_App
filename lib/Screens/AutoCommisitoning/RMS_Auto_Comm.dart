@@ -5,8 +5,8 @@ import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_usb2/core/app_export.dart';
-import 'package:flutter_application_usb2/models/loginmodel.dart';
+import 'package:usb_console_application/core/app_export.dart';
+import 'package:usb_console_application/models/loginmodel.dart';
 
 import 'package:get/get.dart';
 import 'package:hex/hex.dart';
@@ -3927,7 +3927,7 @@ class _RMSAutoCommScreenState extends State<RMSAutoCommScreen>
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                  'Your PDF was saved successfully ${filePath} now please set all the solenoid to Flow Control mode.'),
+                                  'Your PDF was saved successfully $filePath now please set all the solenoid to Flow Control mode.'),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

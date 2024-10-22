@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Screens/AutoCommisitoning/auto_commission_screen_bluetooth.dart';
-import 'package:flutter_application_usb2/Screens/Bluetooth/bluetooth_screen.dart';
-import 'package:flutter_application_usb2/Screens/Login/Dashboard.dart';
-import 'package:flutter_application_usb2/Screens/Login/LoginScreen.dart';
-import 'package:flutter_application_usb2/Screens/Login/splash_screen.dart';
-import 'package:flutter_application_usb2/Screens/ProcessMonitoring/process_moniter_screen_bt.dart';
-import 'package:flutter_application_usb2/Screens/rms/rms_bluetooth.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/auto_commission_screen_bluetooth.dart';
+import 'package:usb_console_application/Screens/Bluetooth/bluetooth_screen.dart';
+import 'package:usb_console_application/Screens/Login/Dashboard.dart';
+import 'package:usb_console_application/Screens/Login/LoginScreen.dart';
+import 'package:usb_console_application/Screens/Login/LoginViaOTP.dart';
+import 'package:usb_console_application/Screens/Login/ProjectListScreen.dart';
+import 'package:usb_console_application/Screens/Login/splash_screen.dart';
+import 'package:usb_console_application/Screens/OfflineData/NodeDetailsOffline.dart';
+import 'package:usb_console_application/Screens/ProcessMonitoring/process_moniter_screen_bt.dart';
+import 'package:usb_console_application/Screens/rms/rms_bluetooth.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(
-          builder: (_) => SplashScreen(),
+          builder: (_) => const SplashScreen(),
         );
       case LoginPageScreen.routeName:
         return MaterialPageRoute(
-          builder: (_) => LoginPageScreen(),
+          builder: (_) => const LoginPageScreen(),
         );
       case AutoDryCommissionScreenBluetooth.routeName:
         return MaterialPageRoute(
@@ -30,13 +33,23 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => DashboardScreen(),
         );
+      case ProjectListScreen.routeName:
+        return MaterialPageRoute(
+          builder: (_) => const ProjectListScreen(),
+        );
       case BluetoothScreen.routeName:
         return MaterialPageRoute(
           builder: (_) => const BluetoothScreen(),
         );
+      // case NodeDetailsOffline.routeName:
+      //   return MaterialPageRoute(
+      //     builder: (_) =>  NodeDetailsOffline(),
+      //   );
       case RMSAutoDryCommissionScreenBluetooth.routeName:
         return MaterialPageRoute(
             builder: (context) => const RMSAutoDryCommissionScreenBluetooth());
+      case LoginviaOTP.routeName:
+        return MaterialPageRoute(builder: (context) => const LoginviaOTP());
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(

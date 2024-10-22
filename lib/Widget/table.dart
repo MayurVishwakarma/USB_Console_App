@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
 import 'package:provider/provider.dart';
 
 class MyTable extends StatelessWidget {

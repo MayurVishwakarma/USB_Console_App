@@ -3,8 +3,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/core/router/router.dart';
+import 'package:usb_console_application/Provider/UsbProvider.dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/core/router/router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => DataProvider()),
+        ChangeNotifierProvider(create: (context) => UsbProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

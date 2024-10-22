@@ -167,7 +167,6 @@ class _IOStatusScreenState extends State<IOStatusScreen> {
                 ),
               ),
             ElevatedButton(
-              child: Text("INTG"),
               onPressed: _port == null
                   ? null
                   : () async {
@@ -183,6 +182,7 @@ class _IOStatusScreenState extends State<IOStatusScreen> {
                       hexDecimalValue = '';
                       await _port!.write(Uint8List.fromList(data.codeUnits));
                     },
+              child: Text("INTG"),
             ),
             if (hexDecimalValue.isNotEmpty) infoCardWidget(),
           ],

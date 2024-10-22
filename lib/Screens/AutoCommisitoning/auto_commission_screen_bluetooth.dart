@@ -1,10 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/Widget/simple_button.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/Widget/simple_button.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
 import 'package:provider/provider.dart';
 
 import '../../Widget/custom_button.dart';
@@ -158,7 +155,7 @@ class _AutoDryCommissionScreenBluetoothState
                               dt.controllerType!.contains('BOCOM6'))
                             Row(
                               children: [
-                                Text("Controller Type:"),
+                                const Text("Controller Type:"),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -169,7 +166,7 @@ class _AutoDryCommissionScreenBluetoothState
                                         dt.updatePFCMDType(value ?? 0);
                                       },
                                     ),
-                                    Text('BOC Controller With 6 PT'),
+                                    const Text('BOC Controller With 6 PT'),
                                     Radio<int>(
                                       value: 2,
                                       groupValue: dt.pfcmcdType,
@@ -177,7 +174,7 @@ class _AutoDryCommissionScreenBluetoothState
                                         dt.updatePFCMDType(value ?? 0);
                                       },
                                     ),
-                                    Text('BOC Controller With 2 PT'),
+                                    const Text('BOC Controller With 2 PT'),
                                   ],
                                 )
                               ],
@@ -620,8 +617,8 @@ class _AutoDryCommissionScreenBluetoothState
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 10),
                             child: Text(
                                 "Click on Check Position Valve to get position sensor values (if you didn't get any response please click on the Position Sensor Button to get the value for the perticular position valve ) " /*"Connect external pressure kit with pressure 2.5 bar and When pressure generated in pipe line press Check PT values"*/),

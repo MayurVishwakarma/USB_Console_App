@@ -1,21 +1,22 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously, avoid_unnecessary_containers, prefer_const_constructors_in_immutables, unused_field
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously, avoid_unnecessary_containers, prefer_const_constructors_in_immutables, unused_field, cast_from_null_always_fails
 
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Screens/AutoCommisitoning/AutoCommistoning.dart';
-import 'package:flutter_application_usb2/Screens/AutoCommisitoning/RMS_Auto_Comm.dart';
-import 'package:flutter_application_usb2/Screens/AutoCommisitoning/auto_commission_screen_bluetooth.dart';
-import 'package:flutter_application_usb2/Screens/Bluetooth/bluetooth_screen.dart';
-import 'package:flutter_application_usb2/Screens/FactorySetting/FactorySetting.dart';
-import 'package:flutter_application_usb2/Screens/Login/LoginScreen.dart';
-import 'package:flutter_application_usb2/Screens/ProcessMonitoring/ProcessMonitering.dart';
-import 'package:flutter_application_usb2/Screens/ProcessMonitoring/process_moniter_screen_bt.dart';
-import 'package:flutter_application_usb2/Screens/rms/rms_bluetooth.dart';
-import 'package:flutter_application_usb2/Widget/custom_stack_widget.dart';
-import 'package:flutter_application_usb2/Widget/dialog.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
-import 'package:flutter_application_usb2/models/pdfbase64code.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/AutoCommistoning.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/RMS_Auto_Comm.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/auto_commission_screen_bluetooth.dart';
+import 'package:usb_console_application/Screens/Bluetooth/bluetooth_screen.dart';
+import 'package:usb_console_application/Screens/FactorySetting/FactorySetting.dart';
+import 'package:usb_console_application/Screens/Login/LoginScreen.dart';
+import 'package:usb_console_application/Screens/ProcessMonitoring/ProcessMonitering.dart';
+import 'package:usb_console_application/Screens/ProcessMonitoring/process_moniter_screen_bt.dart';
+import 'package:usb_console_application/Screens/rms/rms_bluetooth.dart';
+import 'package:usb_console_application/Widget/custom_stack_widget.dart';
+import 'package:usb_console_application/Widget/dialog.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
+import 'package:usb_console_application/models/NodeDetailsModel.dart';
+import 'package:usb_console_application/models/pdfbase64code.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:usb_serial/transaction.dart';
@@ -362,7 +363,8 @@ class _UsbWidgetState extends State<UsbWidget> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => AutoCommistioningScreen()),
+                              builder: (context) => AutoCommistioningScreen(
+                                  null as NodeDetailsModel, '')),
                         );
                       },
               ),
@@ -380,7 +382,48 @@ class _UsbWidgetState extends State<UsbWidget> {
                       },
               ),
             ],
-          )
+          ),
+          /* const SizedBox(
+            height: 16,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              CustomStackWidget(
+                image: "assets/images/uploadreport.png",
+                title: "Connect to ECM",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //       builder: (context) => AutoCommistioningScreen()),
+                        // );
+                      },
+              ),
+              SizedBox(
+                height: 200,
+                width: (MediaQuery.of(context).size.width > 600)
+                    ? 200
+                    : MediaQuery.of(context).size.width / 2.2,
+              )
+              /* CustomStackWidget(
+                image: "assets/images/exam.png",
+                title: "RMS Auto Commission",
+                onTap: _port == null
+                    ? () => deviceNotConnectedDialog(context)
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RMSAutoCommScreen()),
+                        );
+                      },
+              ),
+           */
+            ],
+          )*/
         ],
       )),
     );

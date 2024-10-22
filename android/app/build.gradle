@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.usb_console_application"
-    compileSdk flutter.compileSdkVersion
+    compileSdk 34//flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     compileOptions {

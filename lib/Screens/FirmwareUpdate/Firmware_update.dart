@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_usb2/core/app_export.dart';
+import 'package:usb_console_application/core/app_export.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:file_picker/file_picker.dart';
@@ -25,12 +25,12 @@ class UpdateScreen extends StatefulWidget {
 class _UpdateScreenState extends State<UpdateScreen> {
   @override
   Widget build(BuildContext context) {
-    var result;
+    FilePickerResult? result;
     var file;
     return Scaffold(
       appBar: AppBar(
-          title: Text('FIRMWARE UPDATE'),
-          ),
+        title: Text('FIRMWARE UPDATE'),
+      ),
       body: Container(
         color: Color.fromARGB(255, 174, 205, 236),
         child: Center(
@@ -71,7 +71,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
                       onTap: () async {
                         result = await FilePicker.platform
                             .pickFiles(allowMultiple: true);
-                        file = result.files.first;
+                        // file = result.files!.first;
                       },
                       child: Container(
                         height: 100,
@@ -113,11 +113,14 @@ class _UpdateScreenState extends State<UpdateScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 50),
                     child: ElevatedButton(
-                      child: Text('Firmware Upload',style: TextStyle(color: Colors.white),),
+                      child: Text(
+                        'Firmware Upload',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       onPressed: () {},
                       style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all(Colors.blue)),
+                              WidgetStateProperty.all(Colors.blue)),
                     ),
                   ),
                   Padding(

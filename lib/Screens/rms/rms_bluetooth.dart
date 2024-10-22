@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/Widget/simple_button.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/Widget/simple_button.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
 import 'package:provider/provider.dart';
 
 import '../../Widget/custom_button.dart';

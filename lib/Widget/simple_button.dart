@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
 
 class SimpleButton extends StatelessWidget {
   const SimpleButton(
@@ -29,7 +29,7 @@ class SimpleButton extends StatelessWidget {
 class MyTextButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String title;
-  MyTextButton({super.key, required this.title, this.onPressed});
+  const MyTextButton({super.key, required this.title, this.onPressed});
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -38,10 +38,10 @@ class MyTextButton extends StatelessWidget {
         decoration: BoxDecoration(
             color: AppColors.primaryColor,
             borderRadius: BorderRadius.circular(10)),
-        padding: EdgeInsets.symmetric(horizontal: 3, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
         child: Text(
           title,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
           textAlign: TextAlign.center,
         ),
       ),

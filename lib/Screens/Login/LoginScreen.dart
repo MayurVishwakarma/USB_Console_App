@@ -1,17 +1,19 @@
 // ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_keyColor_in_widget_constructors, prefer_final_fields, unused_field, prefer_const_literals_to_create_immutables, unused_element, file_names, use_build_context_synchronously, avoid_print, non_constant_identifier_names, unnecessary_new, unused_catch_stack, unused_local_variable, sort_child_properties_last
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/Screens/Login/Dashboard.dart';
-import 'package:flutter_application_usb2/Widget/custom_button.dart';
-import 'package:flutter_application_usb2/core/exception.dart';
-import 'package:flutter_application_usb2/core/services/api_services.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
-import 'package:flutter_application_usb2/core/utils/color_constant.dart';
-import 'package:flutter_application_usb2/core/utils/math_utils.dart';
-import 'package:flutter_application_usb2/core/utils/utils.dart';
-import 'package:flutter_application_usb2/models/loginmodel.dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/Screens/Login/ProjectListScreen.dart';
+import 'package:usb_console_application/Widget/custom_button.dart';
+import 'package:usb_console_application/core/exception.dart';
+import 'package:usb_console_application/core/services/api_services.dart';
+import 'package:usb_console_application/core/utils/color_constant.dart';
+import 'package:usb_console_application/core/utils/math_utils.dart';
+import 'package:usb_console_application/core/utils/utils.dart';
+import 'package:usb_console_application/models/loginmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageScreen extends StatefulWidget {
   static const routeName = "/loginScreen";
@@ -27,39 +29,40 @@ class _LoginPageScreenState extends State<LoginPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
           child: Container(
             height: MediaQuery.of(context).size.height,
-            child: Column(
-              children: <Widget>[
-                Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                        padding: EdgeInsets.only(top: 125),
-                        child: Column(
-                          children: [
-                            Image(
-                              image: AssetImage("assets/images/SeLogo.png"),
-                              height: 150,
-                              // width: 400,
-                            ),
-                            Text(
-                              "Welcome Back!",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: AppColors.primaryColor,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "Sign in to your account",
-                              style: TextStyle(fontSize: 16),
-                            )
-                          ],
-                        ))),
-                LoginFormWidget(),
+            child: Stack(
+              children: [
+                const BackgroundDecorations(),
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
+                  child: Container(
+                    decoration: const BoxDecoration(color: Colors.transparent),
+                  ),
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Image(
+                      image: AssetImage("assets/images/SeLogo.png"),
+                      height: 150,
+                      // width: 400,
+                    ),
+                    Text(
+                      'Saisanket Auto-Commissioning App',
+                      style: TextStyle(
+                          color: Colors.green.shade800,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    LoginFormWidget(),
+                  ],
+                ),
               ],
             ),
           ),
@@ -94,10 +97,9 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.all(20),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20), topRight: Radius.circular(20))),
+          color: Colors.white, borderRadius: BorderRadius.circular(15)),
       child: Form(
         key: _formKey,
         child: Column(
@@ -107,24 +109,19 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             const SizedBox(height: 16),
             _buildPasswordField(context),
             const SizedBox(height: 16),
-            // _buildForgotPassword(context),
             _buildLogInButton(context),
-
+            // TextButton(
+            //   onPressed: () {
+            //     Navigator.pushReplacementNamed(context, LoginviaOTP.routeName);
+            //   },
+            //   child: Text('Login via OTP'),
+            // ),
             sizedbox,
-            // _buildCreateNewAccount(context)
           ],
         ),
       ),
     );
   }
-
-  // _userNameValidation(String value) {
-  //   if (value.isEmpty) {
-  //     return "Please enter valid phone number";
-  //   } else {
-  //     return null;
-  //   }
-  // }
 
   _passwordValidation(String value) {
     if (value.isEmpty) {
@@ -208,6 +205,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
         child: CustomButton(
             title: "Login",
+            bcolor: Colors.green,
             onPressed: () async {
               try {
                 if (_formKey.currentState!.validate()) {
@@ -215,10 +213,14 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                       mobileNumber: UsernameController.text,
                       password: passwordController.text);
                   if (user != null) {
+                    SharedPreferences preferences =
+                        await SharedPreferences.getInstance();
+                    preferences.setString('mobileno', UsernameController.text);
                     Provider.of<DataProvider>(context, listen: false)
                         .storeDataInSharedPreference(user.toJson());
-                    Navigator.pushReplacementNamed(
-                        context, DashboardScreen.routeName);
+                    getpop(context, user);
+                    // Navigator.pushReplacementNamed(
+                    //     context, DashboardScreen.routeName);
                   }
                 }
               } on ServerException catch (e) {
@@ -228,9 +230,90 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
   }
 
   getpop(context, LoginMasterModel? data) {
-    return showDialog(
+    showDialog(
+      context: context,
       barrierDismissible: false,
-      useSafeArea: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+              decoration: BoxDecoration(
+                  gradient: ColorConstant.appBarGradient,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Column(
+                      children: [
+                        ///image
+                        Image(
+                          image: AssetImage("assets/images/SeLogo.png"),
+                          height: size.height * 0.15,
+                          width: size.width * 0.30,
+                        ),
+                        // Welcome Text
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text(
+                                "Welcome",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                data!.fName.toString(),
+                                style: TextStyle(
+                                    color: ColorConstant.whiteA700,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                data.userType.toString(),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400),
+                              ),
+                            ]),
+
+                        ///Button
+                        Container(
+                          width: 80,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  elevation: 2,
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15))),
+                              child: Text("OK",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16)),
+                              onPressed: () async {
+                                Provider.of<DataProvider>(context,
+                                        listen: false)
+                                    .storeDataInSharedPreference(data.toJson());
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  ProjectListScreen.routeName,
+                                  (Route<dynamic> route) => false,
+                                );
+                              }),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              )),
+        );
+      },
+    );
+    /*return showDialog(
+      // barrierDismissible: false,
+      // useSafeArea: false,
       context: context,
       builder: (ctx) => Scaffold(
         backgroundColor: Colors.transparent,
@@ -239,26 +322,15 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             decoration: BoxDecoration(
                 gradient: ColorConstant.appBarGradient,
                 borderRadius: BorderRadius.circular(10)),
-            width: 300, //size.width * 0.75,
-            height: 350, //size.height * 0.45,
+            width: size.width * 0.75,
+            height: size.height * 0.45,
             child: Column(
               children: [
                 ///image
-                Column(
-                  children: [
-                    Image(
-                      image: AssetImage("assets/images/SeLogo.png"),
-                      height: size.height * 0.15,
-                      width: size.width * 0.30,
-                    ),
-                    Text(
-                      "BOC Mobile Application",
-                      style: TextStyle(
-                          color: ColorConstant.green900,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
-                    )
-                  ],
+                Image(
+                  image: AssetImage("assets/images/SeLogo.png"),
+                  height: size.height * 0.15,
+                  width: size.width * 0.30,
                 ),
                 // Welcome Text
                 Container(
@@ -300,12 +372,10 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                       child: Text("OK",
                           style: TextStyle(color: Colors.white, fontSize: 16)),
                       onPressed: () async {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => DashboardScreen()),
-                          (Route<dynamic> route) => false,
-                        );
+                        Provider.of<DataProvider>(context, listen: false)
+                            .storeDataInSharedPreference(data.toJson());
+                        Navigator.pushReplacementNamed(
+                            context, DashboardScreen.routeName);
                       }),
                 ),
               ],
@@ -313,6 +383,57 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
           ),
         ),
       ),
+    );
+  */
+  }
+}
+
+class BackgroundDecorations extends StatelessWidget {
+  const BackgroundDecorations({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Align(
+          alignment: const AlignmentDirectional(-2, -0.9),
+          child: Container(
+            height: 300,
+            width: 400,
+            decoration:
+                const BoxDecoration(color: Colors.cyan, shape: BoxShape.circle),
+          ),
+        ),
+        Align(
+          alignment: const AlignmentDirectional(2, 0.1),
+          child: Container(
+            height: 300,
+            width: 300,
+            decoration:
+                const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+          ),
+        ),
+        Align(
+          alignment: const AlignmentDirectional(-1, 0.9),
+          child: Container(
+            height: 300,
+            width: 300,
+            decoration: const BoxDecoration(
+                color: Colors.greenAccent, shape: BoxShape.circle),
+          ),
+        ),
+        // Align(
+        //   alignment: const AlignmentDirectional(-1, 0.9),
+        //   child: ClipPath(
+        //     clipper: OctagonClipper(),
+        //     child: Container(
+        //       height: 300,
+        //       width: 300,
+        //       decoration: const BoxDecoration(color: Colors.green),
+        //     ),
+        //   ),
+        // ),
+      ],
     );
   }
 }

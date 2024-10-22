@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Widget/ExapndedTile.dart';
+import 'package:usb_console_application/Widget/ExapndedTile.dart';
 
 import 'package:usb_serial/transaction.dart';
 import 'package:usb_serial/usb_serial.dart';
@@ -471,7 +471,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
                         width: 100,
-                        child: Container(
+                        child: SizedBox(
                           height: 40,
                           child: TextField(
                             controller: door1,
@@ -488,7 +488,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
                     ),
                     SizedBox(
                       width: 100,
-                      child: Container(
+                      child: SizedBox(
                         height: 40,
                         child: TextField(
                           controller: door2,
@@ -530,7 +530,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   child: Text(
                     'Analog Input Status',
@@ -1501,7 +1501,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
                         width: 100,
-                        child: Container(
+                        child: SizedBox(
                           height: 40,
                           child: TextField(
                             controller: door1,
@@ -1518,7 +1518,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
                     ),
                     SizedBox(
                       width: 100,
-                      child: Container(
+                      child: SizedBox(
                         height: 40,
                         child: TextField(
                           controller: door2,
@@ -1610,7 +1610,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   child: Text(
                     'Analog Input Status',
@@ -6276,8 +6276,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_Inlet_before_range() async {
     try {
-      String data = ('AIS 1' +
-                  ' ' +
+      String data = ('AIS 1' ' ' +
                   inlet_before_Range_Min_controller.text +
                   ' ' +
                   inlet_before_Range_Max_controller.text +
@@ -6522,8 +6521,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_Inlet_after_range() async {
     try {
-      String data = ('AIS 2' +
-                  ' ' +
+      String data = ('AIS 2' ' ' +
                   inlet_after_Range_Min_controller.text +
                   ' ' +
                   inlet_after_Range_Max_controller.text +
@@ -6761,8 +6759,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_range() async {
     try {
-      String data = ('AIS 3' +
-                  ' ' +
+      String data = ('AIS 3' ' ' +
                   outlet_Range_Min_controller.text +
                   ' ' +
                   oultet_Range_Max_controller.text +
@@ -7001,8 +6998,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_position_range() async {
     try {
-      String data = ('AIS 9' +
-                  ' ' +
+      String data = ('AIS 9' ' ' +
                   '0' +
                   ' ' +
                   '100' +
@@ -7239,8 +7235,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_Inlet_1_range() async {
     try {
-      String data = ('AIS 1' +
-                  ' ' +
+      String data = ('AIS 1' ' ' +
                   inlet_1_Range_Min_controller.text +
                   ' ' +
                   inlet_1_Range_Max_controller.text +
@@ -7482,8 +7477,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_Inlet_2_range() async {
     try {
-      String data = ('AIS 2' +
-                  ' ' +
+      String data = ('AIS 2' ' ' +
                   inlet_2_Range_Min_controller.text +
                   ' ' +
                   inlet_2_Range_Max_controller.text +
@@ -7728,8 +7722,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_1_range() async {
     try {
-      String data = ('AIS 3' +
-                  ' ' +
+      String data = ('AIS 3' ' ' +
                   outlet_1_Range_Min_controller.text +
                   ' ' +
                   oultet_1_Range_Max_controller.text +
@@ -7967,8 +7960,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_2_range() async {
     try {
-      String data = ('AIS 4' +
-                  ' ' +
+      String data = ('AIS 4' ' ' +
                   outlet_2_Range_Min_controller.text +
                   ' ' +
                   oultet_2_Range_Max_controller.text +
@@ -8206,8 +8198,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_3_range() async {
     try {
-      String data = ('AIS 5' +
-                  ' ' +
+      String data = ('AIS 5' ' ' +
                   outlet_3_Range_Min_controller.text +
                   ' ' +
                   oultet_3_Range_Max_controller.text +
@@ -8445,8 +8436,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_4_range() async {
     try {
-      String data = ('AIS 6' +
-                  ' ' +
+      String data = ('AIS 6' ' ' +
                   outlet_4_Range_Min_controller.text +
                   ' ' +
                   oultet_4_Range_Max_controller.text +
@@ -8684,8 +8674,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_5_range() async {
     try {
-      String data = ('AIS 7' +
-                  ' ' +
+      String data = ('AIS 7' ' ' +
                   outlet_5_Range_Min_controller.text +
                   ' ' +
                   oultet_5_Range_Max_controller.text +
@@ -8923,8 +8912,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   Set_outlet_6_range() async {
     try {
-      String data = ('AIS 8' +
-                  ' ' +
+      String data = ('AIS 8' ' ' +
                   outlet_6_Range_Min_controller.text +
                   ' ' +
                   oultet_6_Range_Max_controller.text +
@@ -9163,8 +9151,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_1_range() async {
     try {
-      String data = ('AIS 9' +
-                  ' ' +
+      String data = ('AIS 9' ' ' +
                   position_1_Range_Min_controller.text +
                   ' ' +
                   position_1_Range_Max_controller.text +
@@ -9404,8 +9391,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_2_range() async {
     try {
-      String data = ('AIS 10' +
-                  ' ' +
+      String data = ('AIS 10' ' ' +
                   position_2_Range_Min_controller.text +
                   ' ' +
                   position_2_Range_Max_controller.text +
@@ -9645,8 +9631,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_3_range() async {
     try {
-      String data = ('AIS 11' +
-                  ' ' +
+      String data = ('AIS 11' ' ' +
                   position_3_Range_Min_controller.text +
                   ' ' +
                   position_3_Range_Max_controller.text +
@@ -9886,8 +9871,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_4_range() async {
     try {
-      String data = ('AIS 12' +
-                  ' ' +
+      String data = ('AIS 12' ' ' +
                   position_4_Range_Min_controller.text +
                   ' ' +
                   position_4_Range_Max_controller.text +
@@ -10127,8 +10111,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_5_range() async {
     try {
-      String data = ('AIS 13' +
-                  ' ' +
+      String data = ('AIS 13' ' ' +
                   position_5_Range_Min_controller.text +
                   ' ' +
                   position_5_Range_Max_controller.text +
@@ -10368,8 +10351,7 @@ class _IOConfigurationPageState extends State<IOConfigurationPage> {
 
   set_position_6_range() async {
     try {
-      String data = ('AIS 14' +
-                  ' ' +
+      String data = ('AIS 14' ' ' +
                   position_6_Range_Min_controller.text +
                   ' ' +
                   position_6_Range_Max_controller.text +

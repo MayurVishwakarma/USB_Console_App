@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, unused_import, file_names, depend_on_referenced_packages, unnecessary_import, sort_child_properties_last, prefer_const_literals_to_create_immutables, library_private_types_in_public_api, camel_case_types
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Screens/HardwareConfiguation/GeneralSetting.dart';
-import 'package:flutter_application_usb2/Screens/HardwareConfiguation/IOStatus.dart';
+import 'package:usb_console_application/Screens/HardwareConfiguation/GeneralSetting.dart';
+import 'package:usb_console_application/Screens/HardwareConfiguation/IOStatus.dart';
 
 class Hardware_configration extends StatefulWidget {
   const Hardware_configration({Key? key}) : super(key: key);

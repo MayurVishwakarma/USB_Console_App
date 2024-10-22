@@ -1,7 +1,7 @@
 /*
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Screens/Login/MyDrawerScreen.dart';
-import 'package:flutter_application_usb2/contrrollers/bluetooth_controller.dart';
+import 'package:usb_console_application/Screens/Login/MyDrawerScreen.dart';
+import 'package:usb_console_application/contrrollers/bluetooth_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
@@ -56,11 +56,11 @@ class _ProjectsCategoryScreenState extends State<ProjectsCategoryScreen> {
 
 // current use
 // import 'package:flutter/material.dart';
-// import 'package:flutter_application_usb2/Screens/Bluetooth/ConnectedDevices.dart';
-// import 'package:flutter_application_usb2/Screens/Bluetooth/ScanDevice.dart';
-// import 'package:flutter_application_usb2/Screens/HardwareConfiguation/GeneralSetting.dart';
-// import 'package:flutter_application_usb2/Screens/HardwareConfiguation/IOStatus.dart';
-// import 'package:flutter_application_usb2/Screens/Login/MyDrawerScreen.dart';
+// import 'package:usb_console_application/Screens/Bluetooth/ConnectedDevices.dart';
+// import 'package:usb_console_application/Screens/Bluetooth/ScanDevice.dart';
+// import 'package:usb_console_application/Screens/HardwareConfiguation/GeneralSetting.dart';
+// import 'package:usb_console_application/Screens/HardwareConfiguation/IOStatus.dart';
+// import 'package:usb_console_application/Screens/Login/MyDrawerScreen.dart';
 
 // class ProjectsCategoryScreen extends StatefulWidget {
 //   const ProjectsCategoryScreen({Key? key}) : super(key: key);

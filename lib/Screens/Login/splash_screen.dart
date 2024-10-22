@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors, deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_export.dart';
@@ -149,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    "Version 2.0",
+                                    "Version 2.5",
                                     textScaleFactor: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,

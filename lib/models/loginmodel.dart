@@ -28,14 +28,14 @@ class LoginMasterModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['userid'] = this.userid;
-    data['MobMessage'] = this.mobMessage;
-    data['Token'] = this.token;
-    data['userType'] = this.userType;
-    data['FName'] = this.fName;
-    data['LName'] = this.lName;
-    data['pwd'] = this.pwd;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['userid'] = userid;
+    data['MobMessage'] = mobMessage;
+    data['Token'] = token;
+    data['userType'] = userType;
+    data['FName'] = fName;
+    data['LName'] = lName;
+    data['pwd'] = pwd;
     return data;
   }
 }

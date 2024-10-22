@@ -1,7 +1,7 @@
 // ignore_for_file: unused_catch_stack
 
 import 'dart:convert';
-import 'package:flutter_application_usb2/models/loginmodel.dart';
+import 'package:usb_console_application/models/loginmodel.dart';
 import 'package:http/http.dart' as http;
 
 var testUser = LoginMasterModel(

@@ -471,7 +471,6 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                   ),
                 ),
               ElevatedButton(
-                child: Text("SINM"),
                 onPressed: _port == null
                     ? null
                     : () async {
@@ -488,6 +487,7 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                         await _port!.write(Uint8List.fromList(data.codeUnits));
                         await getSiteName();
                       },
+                child: Text("SINM"),
               ),
               if (hexDecimalValue.isNotEmpty) infoCardWidget(),
             ],
@@ -1853,28 +1853,28 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
     double posValve = 0.0, flowValve = 0.0;
     switch (index) {
       case 1:
-        posValve = (model == null ? 0.0 : model);
-        flowValve = (model == null ? 0.0 : model);
+        posValve = (model ?? 0.0);
+        flowValve = (model ?? 0.0);
         break;
       case 2:
-        posValve = (model == null ? 0.0 : model);
-        flowValve = (model == null ? 0.0 : model);
+        posValve = (model ?? 0.0);
+        flowValve = (model ?? 0.0);
         break;
       case 3:
-        posValve = (model == null ? 0.0 : model);
-        flowValve = (model == null ? 0.0 : model);
+        posValve = (model ?? 0.0);
+        flowValve = (model ?? 0.0);
         break;
       case 4:
-        posValve = (model == null ? 0.0 : model);
-        flowValve = (model == null ? 0.0 : model);
+        posValve = (model ?? 0.0);
+        flowValve = (model ?? 0.0);
         break;
       case 5:
-        posValve = (model == null ? 0.0 : model);
-        flowValve = (model == null ? 0.0 : model);
+        posValve = (model ?? 0.0);
+        flowValve = (model ?? 0.0);
         break;
       case 6:
-        posValve = model == null ? 0.0 : model;
-        flowValve = model == null ? 0.0 : model;
+        posValve = model ?? 0.0;
+        flowValve = model ?? 0.0;
         break;
     }
     if (posValve < 2) {
@@ -2063,6 +2063,7 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                       ),
                       if ((subChakQty) >= 1)
                         Container(
+                          width: 48,
                           child: Padding(
                               padding: EdgeInsets.only(right: 15),
                               child: Text(
@@ -2071,7 +2072,6 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                 style: TextStyle(
                                     fontSize: 10, fontWeight: FontWeight.w500),
                               )),
-                          width: 48,
                         ),
                       if ((subChakQty) >= 2)
                         Container(
@@ -3172,11 +3172,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                         children: [
                           ElevatedButton(
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                   modebtntxt == 'Auto'
                                       ? Colors.green
                                       : Colors.blue),
-                              minimumSize: MaterialStateProperty.all(
+                              minimumSize: WidgetStateProperty.all(
                                   Size(30, 30)), // Adjust the button size here
                             ),
                             onPressed: () {
@@ -3194,11 +3194,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                           ),
                           ElevatedButton(
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                   modebtntxt == 'Manual'
                                       ? Colors.green
                                       : Colors.blue),
-                              minimumSize: MaterialStateProperty.all(
+                              minimumSize: WidgetStateProperty.all(
                                   Size(30, 30)), // Adjust the button size here
                             ),
                             onPressed: () {
@@ -3216,11 +3216,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                           ),
                           ElevatedButton(
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all(
+                              backgroundColor: WidgetStateProperty.all(
                                   modebtntxt == 'Test'
                                       ? Colors.green
                                       : Colors.blue),
-                              minimumSize: MaterialStateProperty.all(
+                              minimumSize: WidgetStateProperty.all(
                                   Size(30, 30)), // Adjust the button size here
                             ),
                             onPressed: () {
@@ -3297,11 +3297,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                       children: [
                         ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
+                            backgroundColor: WidgetStateProperty.all(
                                 btnName == 'Flow Control'
                                     ? Colors.green
                                     : Colors.blue),
-                            minimumSize: MaterialStateProperty.all(
+                            minimumSize: WidgetStateProperty.all(
                                 Size(30, 30)), // Adjust the button size here
                           ),
                           onPressed: () {
@@ -3320,11 +3320,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                         ),
                         ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
+                            backgroundColor: WidgetStateProperty.all(
                                 btnName == 'Position'
                                     ? Colors.green
                                     : Colors.blue),
-                            minimumSize: MaterialStateProperty.all(
+                            minimumSize: WidgetStateProperty.all(
                                 Size(30, 30)), // Adjust the button size here
                           ),
                           onPressed: () {
@@ -3343,11 +3343,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                         ),
                         ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
+                            backgroundColor: WidgetStateProperty.all(
                                 btnName == 'Open/Close'
                                     ? Colors.green
                                     : Colors.blue),
-                            minimumSize: MaterialStateProperty.all(
+                            minimumSize: WidgetStateProperty.all(
                                 Size(30, 30)), // Adjust the button size here
                           ),
                           onPressed: () {
@@ -3397,11 +3397,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                   controller: _flowsetpointcontroller,
                                   textAlign: TextAlign.center,
                                   keyboardType: TextInputType.number,
-                                  validator: (_name) {
-                                    if (_name!.isEmpty) {
+                                  validator: (name) {
+                                    if (name!.isEmpty) {
                                       return 'Please enter a value';
                                     }
-                                    final doubleValue = double.tryParse(_name);
+                                    final doubleValue = double.tryParse(name);
                                     if (doubleValue == null) {
                                       return 'Please enter a valid number';
                                     }
@@ -3578,11 +3578,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                     ElevatedButton(
                                       style: ButtonStyle(
                                         backgroundColor:
-                                            MaterialStateProperty.all(
+                                            WidgetStateProperty.all(
                                                 openclosetbnname == 'Open'
                                                     ? Colors.green
                                                     : Colors.blue),
-                                        minimumSize: MaterialStateProperty.all(Size(
+                                        minimumSize: WidgetStateProperty.all(Size(
                                             50,
                                             30)), // Adjust the button size here
                                       ),
@@ -3605,11 +3605,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                     ElevatedButton(
                                       style: ButtonStyle(
                                         backgroundColor:
-                                            MaterialStateProperty.all(
+                                            WidgetStateProperty.all(
                                                 openclosetbnname == 'Close'
                                                     ? Colors.red
                                                     : Colors.blue),
-                                        minimumSize: MaterialStateProperty.all(Size(
+                                        minimumSize: WidgetStateProperty.all(Size(
                                             50,
                                             30)), // Adjust the button size here
                                       ),
@@ -3632,11 +3632,11 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                                     ElevatedButton(
                                       style: ButtonStyle(
                                         backgroundColor:
-                                            MaterialStateProperty.all(
+                                            WidgetStateProperty.all(
                                                 openclosetbnname == 'Stop'
                                                     ? Colors.red
                                                     : Colors.blue),
-                                        minimumSize: MaterialStateProperty.all(Size(
+                                        minimumSize: WidgetStateProperty.all(Size(
                                             50,
                                             30)), // Adjust the button size here
                                       ),
@@ -3673,8 +3673,8 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
                         ElevatedButton(
                           style: ButtonStyle(
                             backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            minimumSize: MaterialStateProperty.all(
+                                WidgetStateProperty.all(Colors.green),
+                            minimumSize: WidgetStateProperty.all(
                                 Size(50, 30)), // Adjust the button size here
                           ),
                           onPressed: () async {
@@ -3721,7 +3721,6 @@ class _ProcessMonitoringScreenState extends State<ProcessMonitoringScreen> {
       _port!.write(Uint8List.fromList(data.codeUnits));
       new Future.delayed(Duration(seconds: 4))
           .whenComplete(() => setOpenCloseMode(openclosetbnname));
-      ;
     } else if (mode.contains('Flow Control')) {
       String data = ('PFCMD1TYPE 2 ' +
                   _flowsetpointcontroller.text +

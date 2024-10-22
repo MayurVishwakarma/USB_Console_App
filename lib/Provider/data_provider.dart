@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
+// ignore_for_file: use_build_context_synchronously, avoid_print, non_constant_identifier_names, prefer_typing_uninitialized_variables, unused_local_variable, library_prefixes
 
 import 'dart:convert';
 import 'dart:io';
@@ -6,13 +6,13 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Screens/Login/Dashboard.dart';
-import 'package:flutter_application_usb2/Screens/Login/LoginScreen.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
-import 'package:flutter_application_usb2/core/utils/utils.dart';
-import 'package:flutter_application_usb2/models/AutoCommission.dart';
-import 'package:flutter_application_usb2/models/data.dart';
-import 'package:flutter_application_usb2/models/loginmodel.dart';
+import 'package:usb_console_application/Screens/Login/LoginScreen.dart';
+import 'package:usb_console_application/Screens/Login/ProjectListScreen.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
+import 'package:usb_console_application/core/utils/utils.dart';
+import 'package:usb_console_application/models/AutoCommission.dart';
+import 'package:usb_console_application/models/data.dart';
+import 'package:usb_console_application/models/loginmodel.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 import 'package:flutter_bluetooth_serial_ble/flutter_bluetooth_serial_ble.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +20,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
-
 import '../core/app_export.dart';
 
 class DataProvider extends ChangeNotifier {
@@ -56,7 +55,7 @@ class DataProvider extends ChangeNotifier {
 
   bool showSovFlowControlMode = false;
 
-  List<String> _response = [];
+  final List<String> _response = [];
   String pdfSavedPath = "";
   int _pfcmcdType = 1;
   int get pfcmcdType => _pfcmcdType;
@@ -153,7 +152,7 @@ class DataProvider extends ChangeNotifier {
   splashScreenInit(BuildContext context) async {
     var res = await getDataFromSharedPreference(Keys.user);
     if (res != null) {
-      Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+      Navigator.pushReplacementNamed(context, ProjectListScreen.routeName);
     } else {
       Navigator.pushReplacementNamed(context, LoginPageScreen.routeName);
     }
@@ -608,7 +607,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(20, 24);
       int decimal = int.parse(subString3 ?? "", radix: 16);
       ai1 = (decimal / 100);
-    } catch (_, ex) {
+    } catch (_) {
       ai1 = 0.0;
     }
     return ai1;
@@ -618,7 +617,7 @@ class DataProvider extends ChangeNotifier {
     double res = 0.0;
     try {
       res = (data / 3.6);
-    } catch (_, ex) {}
+    } catch (_) {}
     return res.toStringAsFixed(2);
   }
 
@@ -629,7 +628,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(24, 28);
       int decimal = int.parse(subString3 ?? "", radix: 16);
       ai2 = (decimal / 100);
-    } catch (_, ex) {
+    } catch (_) {
       ai2 = 0.0;
     }
     return ai2;
@@ -662,7 +661,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -690,7 +689,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
             // binaryNumber = decimalNumber.toRadixString(2);
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -719,7 +718,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -748,7 +747,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -776,7 +775,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -921,7 +920,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -950,7 +949,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -978,7 +977,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -1034,7 +1033,7 @@ class DataProvider extends ChangeNotifier {
             int decimalNumber = int.parse(subString3 ?? "", radix: 16);
             // binaryNumber = decimalNumber.toRadixString(2);
             binaryNumber = decimalNumber.toRadixString(2).padLeft(8, '0');
-          } catch (_, ex) {
+          } catch (_) {
             binaryNumber = '0.0';
           }
 
@@ -1213,7 +1212,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(110, 114);
       int decimal = int.parse(subString3 ?? '', radix: 16);
       dailyvol = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       dailyvol = '0.0';
     }
     return dailyvol;
@@ -1267,7 +1266,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(130, 134);
       int decimal = int.parse(subString3 ?? '', radix: 16);
       dailyvol = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       dailyvol = '0.0';
     }
     return dailyvol;
@@ -1308,7 +1307,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(146, 150);
       int decimal = int.parse(subString3 ?? '', radix: 16);
       flowvalue = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       flowvalue = '0.0';
     }
     return flowvalue;
@@ -1321,7 +1320,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(150, 154);
       int decimal = int.parse(subString3 ?? '', radix: 16);
       dailyvol = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       dailyvol = '0.0';
     }
     return dailyvol;
@@ -1408,7 +1407,8 @@ class DataProvider extends ChangeNotifier {
       String data = "${('dts 0000 00 00 00 00 00').toUpperCase()}\r\n";
       await sendMessage(data);
       await Future.delayed(const Duration(seconds: 5)).whenComplete(() async {
-        String rebootData = "${'RBT'.toUpperCase()}\r\n";
+        // String rebootData = "${'RBT'.toUpperCase()}\r\n";
+        String rebootData = "${'INTG'.toUpperCase()}\r\n";
         await sendMessage(rebootData);
         await Future.delayed(const Duration(seconds: 16))
             .whenComplete(() async {
@@ -1595,7 +1595,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(46, 50);
       int decimal = int.parse(subString3, radix: 16);
       flowvalue = (decimal / 100);
-    } catch (_, ex) {
+    } catch (_) {
       flowvalue = 0.0;
     }
     return flowvalue;
@@ -1608,7 +1608,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(50, 54);
       int decimal = int.parse(subString3, radix: 16);
       dailyvol = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       dailyvol = '0.0';
     }
     return dailyvol;
@@ -1621,7 +1621,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(54, 58);
       int decimal = int.parse(subString3, radix: 16);
       runtime = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       runtime = '0.0';
     }
     return runtime;
@@ -1659,7 +1659,7 @@ class DataProvider extends ChangeNotifier {
       } else if (binaryNumber[7] == '1') {
         returnvalue = 'IRT';
       }
-    } catch (_, ex) {
+    } catch (_) {
       returnvalue = '';
     }
     return returnvalue;
@@ -1679,7 +1679,7 @@ class DataProvider extends ChangeNotifier {
       } else if (binaryNumber[7] == '1') {
         returnvalue = 'Stop Irrigation';
       }
-    } catch (_, ex) {
+    } catch (_) {
       returnvalue = '';
     }
     return returnvalue;
@@ -1703,7 +1703,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(38, 42);
       int decimal = int.parse(subString3 ?? '', radix: 16);
       outletbar = (decimal / 100).toString();
-    } catch (_, ex) {
+    } catch (_) {
       outletbar = '0.0';
     }
     return outletbar;
@@ -1716,7 +1716,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(42, 46);
       int decimal = int.parse(subString3, radix: 16);
       postionvalue = (decimal / 100);
-    } catch (_, ex) {
+    } catch (_) {
       postionvalue = 0.0;
     }
     return postionvalue;
@@ -1753,7 +1753,7 @@ class DataProvider extends ChangeNotifier {
       } else {
         mode = '';
       }
-    } catch (_, ex) {
+    } catch (_) {
       mode = '';
     }
     return mode;
@@ -1776,7 +1776,7 @@ class DataProvider extends ChangeNotifier {
       } else {
         mode = '';
       }
-    } catch (_, ex) {
+    } catch (_) {
       mode = '';
     }
     return mode;
@@ -1789,7 +1789,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(60, 64);
       int decimal = int.parse(subString3, radix: 16);
       BatteryVoltage = (decimal / 100).toDouble();
-    } catch (_, ex) {
+    } catch (_) {
       BatteryVoltage = 0.0;
     }
     return BatteryVoltage;
@@ -1802,7 +1802,7 @@ class DataProvider extends ChangeNotifier {
       subString3 = autoCommissionModel.hexIntgValue?.substring(64, 68);
       int decimal = int.parse(subString3, radix: 16);
       BatteryVoltage = (decimal / 100).toDouble();
-    } catch (_, ex) {
+    } catch (_) {
       BatteryVoltage = 0.0;
     }
     return BatteryVoltage;

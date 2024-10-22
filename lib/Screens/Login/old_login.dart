@@ -1,17 +1,16 @@
 // ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_keyColor_in_widget_constructors, prefer_final_fields, unused_field, prefer_const_literals_to_create_immutables, unused_element, file_names, use_build_context_synchronously, avoid_print, non_constant_identifier_names, unnecessary_new, unused_catch_stack, unused_local_variable, sort_child_properties_last
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_usb2/Provider/data_provider.dart';
-import 'package:flutter_application_usb2/Screens/Login/Dashboard.dart';
-import 'package:flutter_application_usb2/Widget/custom_button.dart';
-import 'package:flutter_application_usb2/Widget/simple_button.dart';
-import 'package:flutter_application_usb2/core/exception.dart';
-import 'package:flutter_application_usb2/core/services/api_services.dart';
-import 'package:flutter_application_usb2/core/utils/appColors..dart';
-import 'package:flutter_application_usb2/core/utils/color_constant.dart';
-import 'package:flutter_application_usb2/core/utils/math_utils.dart';
-import 'package:flutter_application_usb2/core/utils/utils.dart';
-import 'package:flutter_application_usb2/models/loginmodel.dart';
+import 'package:usb_console_application/Provider/data_provider.dart';
+import 'package:usb_console_application/Screens/Login/Dashboard.dart';
+import 'package:usb_console_application/Widget/custom_button.dart';
+import 'package:usb_console_application/core/exception.dart';
+import 'package:usb_console_application/core/services/api_services.dart';
+import 'package:usb_console_application/core/utils/appColors..dart';
+import 'package:usb_console_application/core/utils/color_constant.dart';
+import 'package:usb_console_application/core/utils/math_utils.dart';
+import 'package:usb_console_application/core/utils/utils.dart';
+import 'package:usb_console_application/models/loginmodel.dart';
 import 'package:provider/provider.dart';
 
 class LoginPageScreen extends StatefulWidget {
