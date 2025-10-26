@@ -1,11 +1,10 @@
 // ignore_for_file: file_names, use_build_context_synchronously
 
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:usb_console_application/Screens/Login/LoginScreen.dart';
-import 'package:usb_console_application/Screens/Login/NodeDetailsList.dart';
+import 'package:usb_console_application/Screens/Login/AppDrawer.dart';
+import 'package:usb_console_application/Screens/Login/ProjectMenuScreen.dart';
 import 'package:usb_console_application/core/app_export.dart';
 import 'package:usb_console_application/core/services/api_services.dart';
 import 'package:usb_console_application/models/State_list_Model.dart';
@@ -50,7 +49,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           await ApiService().getStateAuthority(Keys.user);
       if (apiData.isNotEmpty) {
         setState(() {
-          projectList = apiData;
+          projectList = apiData
+              .where(
+                (element) => element.id != 40053,
+              )
+              .toList();
         });
         // Store fetched data in SharedPreferences
         sharedPreferences.setString('offlineProjectData', jsonEncode(apiData));
@@ -66,29 +69,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
+        drawer: MyDrawerScreen(),
         appBar: AppBar(
           title: Text('Project List'.toUpperCase()),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GestureDetector(
-                child: const Image(
-                  image: AssetImage('assets/images/turn-off.png'),
-                  height: 25,
-                ),
-                onTap: () async {
-                  SharedPreferences preferences =
-                      await SharedPreferences.getInstance();
-                  await preferences.clear();
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    LoginPageScreen.routeName,
-                    (Route<dynamic> route) => false,
-                  );
-                },
-              ),
-            )
-          ],
         ),
         body: RefreshIndicator(
           onRefresh: () async {
@@ -173,19 +156,31 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   child: ListTile(
                                     onTap: () async {
                                       setVaribales(data[index]);
+
                                       Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Nodedetailslist(
-                                              data[index].projectName!),
+                                          builder: (context) =>
+                                              ProjectMenuScreen(data[index]),
                                         ),
                                         (Route<dynamic> route) => true,
                                       );
+                                      /*
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Nodedetailslist(data[index]),
+                                        ),
+                                        (Route<dynamic> route) => true,
+                                      );
+                                      */
                                     },
                                     leading: SizedBox(
                                       height: 80,
                                       child: Image.asset(getStateImage(
-                                          data[index].state!.toLowerCase())!),
+                                          (data[index].state ?? '')
+                                              .toLowerCase())!),
                                     ),
                                     title: Text(
                                       data[index].projectName ?? '',

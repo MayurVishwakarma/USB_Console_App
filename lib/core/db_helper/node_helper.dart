@@ -1,3 +1,6 @@
+// ignore_for_file: depend_on_referenced_packages, avoid_print
+
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:usb_console_application/models/NodeDetailsModel.dart';
@@ -123,5 +126,23 @@ class DatabaseHelper {
     } else {
       print('Node detail with ChakNo ${nodeDetails.chakNo} already exists.');
     }
+  }
+
+  Future<void> deleteOldRecords(String projectName) async {
+    var dbClient = await db;
+    String tableName = '${projectName.toLowerCase()}_NodeList';
+
+    // Get the date one day ago
+    final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
+    final formattedDate = DateFormat('yyyy-MM-dd').format(oneDayAgo);
+
+    // Execute delete query
+    await dbClient.delete(
+      tableName,
+      where: "Timestamp < ?",
+      whereArgs: [formattedDate],
+    );
+
+    print('Old records deleted from $tableName.');
   }
 }

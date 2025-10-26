@@ -1,22 +1,25 @@
-// ignore_for_file: must_be_immutable, unused_field, unnecessary_null_comparison, non_constant_identifier_names
+// ignore_for_file: must_be_immutable, unused_field, unnecessary_null_comparison, non_constant_identifier_names, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_serial_communication/flutter_serial_communication.dart';
+import 'package:flutter_serial_communication/models/device_info.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/AutoCommission_2PT.dart';
 import 'package:usb_console_application/Screens/AutoCommisitoning/AutoCommistoning.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/OnePFCMDROMS_screen.dart';
+import 'package:usb_console_application/Screens/AutoCommisitoning/OnePFCMD_DryComm.dart';
 import 'package:usb_console_application/Widget/dialog.dart';
 import 'package:usb_console_application/core/db_helper/node_helper.dart';
 import 'package:usb_console_application/models/EngineerModel.dart';
 import 'package:usb_console_application/models/NodeDetailsModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:usb_serial/transaction.dart';
-import 'package:usb_serial/usb_serial.dart';
+import 'package:usb_console_application/models/State_list_Model.dart';
 
 class Nodedetailslist extends StatefulWidget {
-  String? projectName;
-  Nodedetailslist(String project, {super.key}) {
+  ProjectModel? projectName;
+  Nodedetailslist(ProjectModel project, {super.key}) {
     projectName = project;
   }
 
@@ -25,12 +28,12 @@ class Nodedetailslist extends StatefulWidget {
 }
 
 class _NodedetailslistState extends State<Nodedetailslist> {
-  UsbPort? _port;
-  String _status = "Idle";
-  List<UsbDevice> _devices = [];
-  StreamSubscription<String>? _subscription;
-  Transaction<String>? _transaction;
-  Future<bool> _connectTo(UsbDevice? device) async {
+  final FlutterSerialCommunication _serialComm = FlutterSerialCommunication();
+  List<DeviceInfo> _devices = [];
+  List<String> deviceTypes = [];
+  String? selectedDeviceType = 'OMS';
+
+  /*  Future<bool> _connectTo(UsbDevice? device) async {
     if (_port != null) {
       await _port!.close();
       _port = null;
@@ -65,40 +68,63 @@ class _NodedetailslistState extends State<Nodedetailslist> {
       _status = "Connected";
     });
     return true;
-  }
+  } */
 
   Future<void> _getPorts() async {
-    final devices = await UsbSerial.listDevices();
+    final devices = await _serialComm.getAvailableDevices();
     setState(() {
       _devices = devices;
     });
-    _connectTo(devices.first);
   }
 
   @override
   void initState() {
     super.initState();
+    updateDeviceTypes(widget.projectName!.eCString ?? '');
     getProjectDetails();
-    searchController = TextEditingController();
-    UsbSerial.usbEventStream?.listen((UsbEvent event) {
-      _getPorts();
-    });
     _getPorts();
+    searchController = TextEditingController();
+    _serialComm
+        .getSerialMessageListener()
+        .receiveBroadcastStream()
+        .listen((event) {
+      debugPrint("Received From Native:  $event");
+    });
+
+    _serialComm
+        .getDeviceConnectionListener()
+        .receiveBroadcastStream()
+        .listen((event) {});
   }
 
   getProjectDetails() async {
     await getUserId().whenComplete(() {
       _firstLoad();
     });
-    await DatabaseHelper()
-        .createProjectTable(widget.projectName?.replaceAll(' ', '_') ?? '');
-    _loadFromDatabase();
+    try {
+      await DatabaseHelper().createProjectTable(
+          widget.projectName?.projectName?.replaceAll(' ', '_') ?? '');
+      await DatabaseHelper().deleteOldRecords(
+          widget.projectName?.projectName?.replaceAll(' ', '_') ?? '');
+      _loadFromDatabase();
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    _connectTo(null);
+    _serialComm.disconnect();
+  }
+
+  void updateDeviceTypes(String eCString) {
+    deviceTypes = [];
+    if (eCString[0] == '1') deviceTypes.add('OMS');
+    if (eCString[1] == '1') deviceTypes.add('AMS');
+    if (eCString[2] == '1') deviceTypes.add('RMS');
+    if (eCString[3] == '1') deviceTypes.add('Lora');
+    selectedDeviceType = deviceTypes.first;
   }
 
   late TextEditingController searchController;
@@ -107,31 +133,100 @@ class _NodedetailslistState extends State<Nodedetailslist> {
   List<NodeDetailsModel>? _DisplayList = [];
   List<NodeDetailsModel>? _filteredList = [];
 
+  void navigateBasedOnProjectName(int index) {
+    final projectName = widget.projectName?.projectName?.toLowerCase();
+
+    if (projectName == null) {
+      firmwareNotFound(context);
+      return;
+    }
+
+    if ([
+      'kundalia lbc',
+      'kundalia rbc',
+      'pachore',
+      'jamuniya',
+      'kundaliarbc_exe',
+      'mohanpura r2'
+    ].contains(projectName)) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AutoCommistioningScreen(
+            _filteredList![index],
+            widget.projectName?.projectName ?? '',
+          ),
+        ),
+        (Route<dynamic> route) => true,
+      ).whenComplete(() {
+        _firstLoad();
+      });
+    } else if ([
+      'bansujara',
+      'garoth',
+      'alirajpur',
+      'alirajpur demo',
+      'chhegaon makhan',
+      'chhegaon makhan d',
+      'hanuman jugaidevi'
+    ].contains(projectName)) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnePFCMDScreen(
+            _filteredList![index],
+            widget.projectName?.projectName ?? '',
+          ),
+        ),
+        (Route<dynamic> route) => true,
+      );
+    } else if (['shamgarh', 'mohanpurarbc_exe', 'berkheda']
+        .contains(projectName)) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AutoCommission2PTScreen(
+            _filteredList![index],
+            widget.projectName?.projectName ?? '',
+          ),
+        ),
+        (Route<dynamic> route) => true,
+      ).whenComplete(() {
+        _firstLoad();
+      });
+    } else if (['bistan'].contains(projectName)) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OnePFCMDROMSScreen(
+            _filteredList![index],
+            widget.projectName?.projectName ?? '',
+          ),
+        ),
+        (Route<dynamic> route) => true,
+      );
+    } else {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AutoCommistioningScreen(
+            _filteredList![index],
+            widget.projectName?.projectName ?? '',
+          ),
+        ),
+        (Route<dynamic> route) => true,
+      ).whenComplete(() {
+        _firstLoad();
+      });
+      // firmwareNotFound(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.projectName?.toUpperCase()}'),
-        // actions: [
-        //   Padding(
-        //     padding: const EdgeInsets.all(8.0),
-        //     child: GestureDetector(
-        //       child: const Image(
-        //         image: AssetImage('assets/images/menu-bar.png'),
-        //         height: 25,
-        //       ),
-        //       onTap: () async {
-        //         Navigator.pushAndRemoveUntil(
-        //           context,
-        //           MaterialPageRoute(
-        //               builder: (context) =>
-        //                   NodeDetailsOffline(widget.projectName!)),
-        //           (Route<dynamic> route) => true,
-        //         );
-        //       },
-        //     ),
-        //   )
-        // ],
+        title: Text('${widget.projectName?.projectName?.toUpperCase()}'),
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
@@ -164,20 +259,75 @@ class _NodedetailslistState extends State<Nodedetailslist> {
                   itemCount: _filteredList?.length ?? 0,
                   itemBuilder: (context, index) {
                     return InkWell(
-                      onTap: _port == null
+                      onTap: _devices.isEmpty
                           ? () => deviceNotConnectedDialog(context)
                           : () {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        AutoCommistioningScreen(
-                                            _filteredList![index],
-                                            widget.projectName!)),
-                                (Route<dynamic> route) => true,
-                              ).whenComplete(() {
-                                _firstLoad();
-                              });
+                              navigateBasedOnProjectName(index);
+                              /* final firmwareVersion = double.tryParse(
+                                      _filteredList?[index]
+                                              .firmwareVersion
+                                              ?.toString() ??
+                                          '0.0')
+                                  ?.toStringAsFixed(1);
+
+                              switch (firmwareVersion) {
+                                case '5.8':
+                                case '6.2':
+                                case '6.5':
+                                  // Check the project name for specific cases
+                                  if (widget.projectName?.toLowerCase() ==
+                                          'shamgarh' ||
+                                      widget.projectName?.toLowerCase() ==
+                                          'mohanpurarbc_exe') {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            AutoCommission2PTScreen(
+                                          _filteredList![index],
+                                          widget.projectName!,
+                                        ),
+                                      ),
+                                      (Route<dynamic> route) => true,
+                                    ).whenComplete(() {
+                                      _firstLoad();
+                                    });
+                                  } else {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            AutoCommistioningScreen(
+                                          _filteredList![index],
+                                          widget.projectName!,
+                                        ),
+                                      ),
+                                      (Route<dynamic> route) => true,
+                                    ).whenComplete(() {
+                                      _firstLoad();
+                                    });
+                                  }
+                                  break;
+
+                                case '2.5':
+                                  // Specific case for firmware version 2.5
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => OnePFCMDScreen(
+                                        _filteredList![index],
+                                        widget.projectName!,
+                                      ),
+                                    ),
+                                    (Route<dynamic> route) => true,
+                                  );
+                                  break;
+
+                                default:
+                                  // Handle unknown firmware versions
+                                  firmwareNotFound(context);
+                                  break;
+                              }*/
                             },
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -191,8 +341,6 @@ class _NodedetailslistState extends State<Nodedetailslist> {
                             width: double.infinity,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(5)),
-                            // padding: const EdgeInsets.only(
-                            //     left: 0, right: 0, bottom: 15, top: 0),
                             child: Column(
                               children: [
                                 Container(
@@ -238,7 +386,7 @@ class _NodedetailslistState extends State<Nodedetailslist> {
                                       )
                                     ],
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -256,6 +404,35 @@ class _NodedetailslistState extends State<Nodedetailslist> {
               )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildDropdown<T>({
+    required String label,
+    required T? value,
+    required List<T> items,
+    required void Function(T?) onChanged,
+    required String Function(T) itemText,
+  }) {
+    return SizedBox(
+      height: 80,
+      width: 200,
+      child: DropdownButtonFormField<T>(
+        isExpanded: true,
+        isDense: true,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        value: value,
+        items: items.map((item) {
+          return DropdownMenuItem(
+            value: item,
+            child: Text(itemText(item)),
+          );
+        }).toList(),
+        onChanged: onChanged,
       ),
     );
   }
@@ -287,8 +464,8 @@ class _NodedetailslistState extends State<Nodedetailslist> {
   // This function will load data from the local database
   void _loadFromDatabase() async {
     DatabaseHelper dbHelper = DatabaseHelper();
-    List<NodeDetailsModel> storedData = await dbHelper
-        .getAllNodeDetails(widget.projectName?.replaceAll(' ', '_'));
+    List<NodeDetailsModel> storedData = await dbHelper.getAllNodeDetails(
+        widget.projectName?.projectName?.replaceAll(' ', '_'));
     setState(() {
       _DisplayList = storedData;
       _filteredList = _DisplayList;
@@ -303,9 +480,9 @@ class _NodedetailslistState extends State<Nodedetailslist> {
       int? userId = preferences.getInt('ProUserId');
 
       final res = await http.get(Uri.parse(
-          'http://wmsservices.seprojects.in/api/PMS/ECMReportStatusByUserId?userId=$userId&Source=oms&conString=$conString'));
+          'http://wmsservices.seprojects.in/api/PMS/ECMReportStatusByUserId?userId=$userId&Source=$selectedDeviceType&conString=$conString'));
       print(
-          'http://wmsservices.seprojects.in/api/PMS/ECMReportStatusByUserId?userId=$userId&Source=oms&conString=$conString');
+          'http://wmsservices.seprojects.in/api/PMS/ECMReportStatusByUserId?userId=$userId&Source=$selectedDeviceType&conString=$conString');
       if (res.statusCode == 200) {
         var json = jsonDecode(res.body);
         List<NodeDetailsModel> fetchedData = <NodeDetailsModel>[];
@@ -318,7 +495,8 @@ class _NodedetailslistState extends State<Nodedetailslist> {
 
           // Insert each node detail into the database
           await dbHelper.insertNodeDetails(
-              widget.projectName!.replaceAll(' ', '_'), nodeDetail);
+              (widget.projectName?.projectName ?? '').replaceAll(' ', '_'),
+              nodeDetail);
         }
 
         setState(() {

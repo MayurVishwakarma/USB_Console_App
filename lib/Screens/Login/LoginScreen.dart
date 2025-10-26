@@ -1,5 +1,6 @@
-// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_keyColor_in_widget_constructors, prefer_final_fields, unused_field, prefer_const_literals_to_create_immutables, unused_element, file_names, use_build_context_synchronously, avoid_print, non_constant_identifier_names, unnecessary_new, unused_catch_stack, unused_local_variable, sort_child_properties_last
+// ignore_for_file: prefer_const_constructors, sized_box_for_whitespace, use_keyColor_in_widget_constructors, prefer_final_fields, unused_field, prefer_const_literals_to_create_immutables, unused_element, file_names, use_build_context_synchronously, avoid_print, non_constant_identifier_names, unnecessary_new, unused_catch_stack, unused_local_variable, sort_child_properties_last, unnecessary_null_comparison
 
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -58,6 +59,13 @@ class _LoginPageScreenState extends State<LoginPageScreen> {
                       style: TextStyle(
                           color: Colors.green.shade800,
                           fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Version 2.8.3',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold),
                     ),
                     LoginFormWidget(),
@@ -209,12 +217,14 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             onPressed: () async {
               try {
                 if (_formKey.currentState!.validate()) {
-                  LoginMasterModel? user = await ApiService().login(
-                      mobileNumber: UsernameController.text,
-                      password: passwordController.text);
+                  LoginMasterModel? user = await ApiService().userLogin(
+                      UsernameController.text, passwordController.text);
                   if (user != null) {
                     SharedPreferences preferences =
                         await SharedPreferences.getInstance();
+                    int batchNo = Random().nextInt(1000);
+                    print("Batch No Login: $batchNo");
+                    preferences.setInt('batchNo', batchNo);
                     preferences.setString('mobileno', UsernameController.text);
                     Provider.of<DataProvider>(context, listen: false)
                         .storeDataInSharedPreference(user.toJson());

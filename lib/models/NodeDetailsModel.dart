@@ -75,7 +75,7 @@ class NodeDetailsModel {
   final dynamic firmwareVersion;
   final int? subChakQty;
   final String? macAddress;
-  final DateTime? timestamp;
+  final dynamic timestamp;
 
   factory NodeDetailsModel.fromJson(Map<String, dynamic> json) {
     return NodeDetailsModel(
@@ -159,4 +159,3 @@ class NodeDetailsModel {
         "Timestamp": timestamp,
       };
 }
-

@@ -14,7 +14,6 @@ import 'package:usb_console_application/models/AutoCommission.dart';
 import 'package:usb_console_application/models/data.dart';
 import 'package:usb_console_application/models/loginmodel.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
-import 'package:flutter_bluetooth_serial_ble/flutter_bluetooth_serial_ble.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -23,14 +22,14 @@ import 'package:pdf/widgets.dart' as pdfWidgets;
 import '../core/app_export.dart';
 
 class DataProvider extends ChangeNotifier {
-  BluetoothConnection? bluetoothConnection;
-  List<fbp.BluetoothDevice> _bondedDevices = [];
-  List<fbp.BluetoothDevice> get bondedDevices => _bondedDevices;
+  // BluetoothConnection? bluetoothConnection;
+  // List<fbp.BluetoothDevice> _bondedDevices = [];
+  // List<fbp.BluetoothDevice> get bondedDevices => _bondedDevices;
 
   final ScrollController listScrollController = ScrollController();
 
-  List<fbp.BluetoothDevice> _connectedDevices = [];
-  List<fbp.BluetoothDevice> get connectedDevices => _connectedDevices;
+  // List<fbp.BluetoothDevice> _connectedDevices = [];
+  // List<fbp.BluetoothDevice> get connectedDevices => _connectedDevices;
 
   String? _controllerType;
   String? get controllerType => _controllerType;
@@ -64,7 +63,7 @@ class DataProvider extends ChangeNotifier {
   double? get ptSetpoint => _ptSetPoint;
   double? upperLimit = 2.5 * 0.9;
   double? lowerLimit = 2.5 * 1.1;
-
+/*
   updateSetPoint(double newSetPoint) {
     _ptSetPoint = newSetPoint;
     lowerLimit = newSetPoint * 0.9;
@@ -121,7 +120,8 @@ class DataProvider extends ChangeNotifier {
     _connectedDevices = newDevices;
     notifyListeners();
   }
-
+*/
+  
   Future<LoginMasterModel?> getDataFromSharedPreference(Keys key) async {
     final sharePref = await SharedPreferences.getInstance();
     var user = sharePref.getString(key.name);
@@ -158,7 +158,7 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> connectBTDevice(
+/*  Future<void> connectBTDevice(
       BuildContext context, fbp.BluetoothDevice device) async {
     try {
       bluetoothConnection =
@@ -833,28 +833,28 @@ class DataProvider extends ChangeNotifier {
     double posValve = 0.0, flowValve = 0.0;
     switch (index) {
       case 1:
-        posValve = (model ?? 0.0);
-        flowValve = (model ?? 0.0);
+        posValve = (model);
+        flowValve = (model);
         break;
       case 2:
-        posValve = (model ?? 0.0);
-        flowValve = (model ?? 0.0);
+        posValve = (model);
+        flowValve = (model);
         break;
       case 3:
-        posValve = (model ?? 0.0);
-        flowValve = (model ?? 0.0);
+        posValve = (model);
+        flowValve = (model);
         break;
       case 4:
-        posValve = (model ?? 0.0);
-        flowValve = (model ?? 0.0);
+        posValve = (model);
+        flowValve = (model);
         break;
       case 5:
-        posValve = (model ?? 0.0);
-        flowValve = (model ?? 0.0);
+        posValve = (model);
+        flowValve = (model);
         break;
       case 6:
-        posValve = model ?? 0.0;
-        flowValve = model ?? 0.0;
+        posValve = model;
+        flowValve = model;
         break;
     }
     if (posValve < 2) {
@@ -3322,7 +3322,8 @@ class DataProvider extends ChangeNotifier {
       );
     }
   }
-
+*/
+  
   String getcurrentdate() {
     final DateTime now = DateTime.now();
     final DateFormat formatter = DateFormat('d-MMM-y H:m:s');

@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:usb_console_application/Provider/UsbProvider.dart';
 import 'package:usb_console_application/Provider/data_provider.dart';
 import 'package:usb_console_application/core/router/router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 Future<void> requestPermissionsOnStartup() async {
   Map<Permission, PermissionStatus> statuses = await [
     Permission.storage,
+    Permission.manageExternalStorage,
     Permission.bluetooth,
     Permission.bluetoothConnect,
     Permission.bluetoothScan,
@@ -22,6 +22,7 @@ Future<void> requestPermissionsOnStartup() async {
     await [
       Permission.storage,
       Permission.bluetooth,
+      Permission.manageExternalStorage,
       Permission.bluetoothConnect,
       Permission.bluetoothScan,
     ].request();
@@ -45,7 +46,6 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => DataProvider()),
-        ChangeNotifierProvider(create: (context) => UsbProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

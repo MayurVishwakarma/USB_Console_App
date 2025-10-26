@@ -93,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                   ),
                                   child: FittedBox(
                                     child: Text(
-                                      "Saisanket Controller Application",
+                                      "Auto Dry Commissioning\nApplication",
                                       textScaleFactor: 1,
                                       overflow: TextOverflow.ellipsis,
                                       softWrap: true,
@@ -115,33 +115,6 @@ class _SplashScreenState extends State<SplashScreen> {
                                       18.00,
                                     ),
                                     top: getVerticalSize(
-                                      5.00,
-                                    ),
-                                    right: getHorizontalSize(
-                                      18.00,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    "Controller Mobile Application",
-                                    textScaleFactor: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: ColorConstant.whiteA700,
-                                      fontSize: getFontSize(
-                                        18,
-                                      ),
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: getHorizontalSize(
-                                      18.00,
-                                    ),
-                                    top: getVerticalSize(
                                       4.00,
                                     ),
                                     right: getHorizontalSize(
@@ -149,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    "Version 2.5",
+                                    "Version 2.8.3",
                                     textScaleFactor: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
